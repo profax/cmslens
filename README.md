@@ -1,3 +1,5 @@
+**English** | [Русский](README.ru.md)
+
 # cmslens
 
 cmslens tells which CMS, site builder or web framework a website runs. It reads
