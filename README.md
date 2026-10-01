@@ -9,6 +9,9 @@ NetCat, UMI.CMS, uCoz and Flexbe.
 It is a Go library and a command-line tool, with no dependencies outside the
 standard library.
 
+Try it in the browser: [armilen.ru/en/services/cms](https://www.armilen.ru/en/services/cms)
+runs on cmslens.
+
 ```
 $ cmslens wordpress.org tilda.cc 1c-bitrix.ru
 wordpress.org	WordPress
