@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -19,8 +20,14 @@ import (
 	"github.com/profax/cmslens"
 )
 
-// Set by the release build.
+// Set by the release build; go install leaves it to the module version.
 var version = "dev"
+
+func init() {
+	if info, ok := debug.ReadBuildInfo(); ok && version == "dev" && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		version = info.Main.Version
+	}
+}
 
 // Sites are fetched in parallel, but not so many at once that a long list
 // looks like an attack from this machine.
