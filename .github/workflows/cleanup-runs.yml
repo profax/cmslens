@@ -1,6 +1,6 @@
 name: Delete old workflow runs
 
-# The list of runs cleans itself. Failed, cancelled and skipped runs live for
+# The list of runs cleans itself. Failed, canceled and skipped runs live for
 # three days: long enough to find the cause, after that they only hide the
 # runs that matter. The rest live for two weeks, and the last five runs of
 # every workflow always stay.
@@ -21,7 +21,7 @@ jobs:
       actions: write
       contents: read
     steps:
-      - name: Failed, cancelled and skipped runs older than three days
+      - name: Failed, canceled and skipped runs older than three days
         uses: Mattraks/delete-workflow-runs@0cf693bc9909e5e867ee8f27b813224ba862939c # v2
         with:
           token: ${{ github.token }}
