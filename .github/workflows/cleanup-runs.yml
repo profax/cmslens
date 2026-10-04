@@ -1,0 +1,40 @@
+name: Delete old workflow runs
+
+# The list of runs cleans itself. Failed, cancelled and skipped runs live for
+# three days: long enough to find the cause, after that they only hide the
+# runs that matter. The rest live for two weeks, and the last five runs of
+# every workflow always stay.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only show what would be deleted
+        type: boolean
+        default: false
+
+jobs:
+  del_runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Failed, cancelled and skipped runs older than three days
+        uses: Mattraks/delete-workflow-runs@0cf693bc9909e5e867ee8f27b813224ba862939c # v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 3
+          keep_minimum_runs: 0
+          delete_run_by_conclusion_pattern: failure,cancelled,skipped,timed_out,startup_failure
+          dry_run: ${{ inputs.dry_run || false }}
+      - name: Every run older than two weeks, except the last five
+        uses: Mattraks/delete-workflow-runs@0cf693bc9909e5e867ee8f27b813224ba862939c # v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 14
+          keep_minimum_runs: 5
+          dry_run: ${{ inputs.dry_run || false }}
