@@ -186,6 +186,8 @@ func New(opts Options) *Client {
 	dialer := &net.Dialer{Timeout: timeout, KeepAlive: 30 * time.Second, Control: guardDial}
 	var tlsConfig *tls.Config
 	if opts.InsecureTLS {
+		// Without certificate checks a minimum TLS version protects nothing
+		// nosemgrep: missing-ssl-minversion
 		tlsConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 	return &Client{

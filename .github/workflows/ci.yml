@@ -7,11 +7,17 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # Each leg runs the Go it names, not the toolchain line from go.mod
+    env:
+      GOTOOLCHAIN: local
     strategy:
       matrix:
         go: ["1.24", "stable"]
+    # Actions from actions/* keep their tags; third-party ones are pinned by hash
     steps:
+      # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/checkout@v4
+      # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
