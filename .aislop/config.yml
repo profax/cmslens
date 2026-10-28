@@ -1,8 +1,0 @@
-ci:
-  failBelow: 90
-  baseline: .aislop/ci-baseline.json
-rules:
-  ai-slop/swallowed-exception: error
-  ai-slop/console-leftover: error
-telemetry:
-  enabled: false
