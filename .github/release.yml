@@ -1,0 +1,11 @@
+# Sections of the release notes; goreleaser asks GitHub for them
+changelog:
+  categories:
+    # A pull request that breaks callers gets the label "breaking"
+    - title: Breaking changes
+      labels: [breaking]
+    # Dependabot labels its pull requests itself
+    - title: Dependencies
+      labels: [dependencies]
+    - title: Changes
+      labels: ["*"]

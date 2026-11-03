@@ -16,3 +16,8 @@ archives:
 
 checksum:
   name_template: checksums.txt
+
+# Notes come from the merged pull requests, sorted by .github/release.yml, so
+# a breaking change gets a section of its own instead of hiding in the list
+changelog:
+  use: github-native
