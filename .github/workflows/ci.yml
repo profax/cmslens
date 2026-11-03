@@ -24,6 +24,8 @@ jobs:
     steps:
       # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/setup-go@v7
         with:

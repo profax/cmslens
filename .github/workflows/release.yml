@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # goreleaser publishes with GITHUB_TOKEN from its env, not through git
+          persist-credentials: false
       # Newest stable Go; never older than the toolchain line in go.mod
       # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/setup-go@v7
