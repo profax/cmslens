@@ -2,6 +2,8 @@
 
 # cmslens
 
+[![Coverage](https://img.shields.io/badge/coverage-53.7%25-red)](coverage.txt)
+
 cmslens определяет, на какой CMS, конструкторе сайтов или веб-фреймворке
 работает сайт. Он читает HTML страницы и заголовки ответа и сверяет их с
 таблицей из 556 платформ: WordPress, Shopify, Drupal и Webflow, а также

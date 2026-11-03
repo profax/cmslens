@@ -2,6 +2,8 @@
 
 # cmslens
 
+[![Coverage](https://img.shields.io/badge/coverage-53.7%25-red)](coverage.txt)
+
 cmslens tells which CMS, site builder or web framework a website runs. It reads
 the page's HTML and response headers and matches them against a table of 556
 platforms: WordPress, Shopify, Drupal and Webflow, and also many platforms
