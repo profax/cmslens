@@ -22,7 +22,7 @@ jobs:
     # Actions from actions/* keep their tags; third-party ones are pinned by hash
     steps:
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       # Newest stable Go; never older than the toolchain line in go.mod

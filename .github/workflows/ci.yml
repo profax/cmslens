@@ -23,7 +23,7 @@ jobs:
     # Actions from actions/* keep their tags; third-party ones are pinned by hash
     steps:
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/setup-go@v5
         with:
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       # nosemgrep: github-actions-mutable-action-tag
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       # nosemgrep: github-actions-mutable-action-tag
