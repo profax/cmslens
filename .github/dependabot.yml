@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # The module has no dependencies outside the standard library; the entry
+  # is here for the day one appears
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # One pull request a week for the small updates, majors each apart
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
