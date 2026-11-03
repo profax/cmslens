@@ -3,6 +3,8 @@ name: ci
 on:
   push:
   pull_request:
+  # The release runs the same checks before it builds anything
+  workflow_call:
 
 permissions:
   contents: read
