@@ -25,7 +25,7 @@ jobs:
       # nosemgrep: github-actions-mutable-action-tag
       - uses: actions/checkout@v7
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
       - run: test -z "$(gofmt -l .)"
@@ -40,7 +40,7 @@ jobs:
         with:
           persist-credentials: false
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       # Every linter is on (.golangci.yml); the version is fixed so that a new
@@ -57,7 +57,7 @@ jobs:
         with:
           persist-credentials: false
       # nosemgrep: github-actions-mutable-action-tag
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       # The committed count of statements without a test must be what the tests
