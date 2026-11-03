@@ -54,7 +54,7 @@ func main() {
 	asJSON := flag.Bool("json", false, "print one JSON object per site")
 	file := flag.String("file", "", "detect from a saved HTML page instead of fetching (no headers are used)")
 	timeout := flag.Duration("timeout", defaultTimeout, "time limit per site")
-	scraperKey := flag.String("scraperapi-key", os.Getenv("SCRAPERAPI_KEY"),
+	scraperKey := flag.String("scraperapi-key", "",
 		"retry blocked sites through ScraperAPI (default $SCRAPERAPI_KEY)")
 	country := flag.String("country", "", "ScraperAPI country code, such as us or de")
 	lang := flag.String("lang", "", `Accept-Language to send (default "en-US,en;q=0.9")`)
@@ -65,6 +65,11 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+	// Read here rather than set as the flag's default: the help text prints
+	// defaults, and the key would show on the screen
+	if *scraperKey == "" {
+		*scraperKey = os.Getenv("SCRAPERAPI_KEY")
+	}
 
 	if *showVersion {
 		fmt.Println("cmslens", moduleVersion())

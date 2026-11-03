@@ -1,9 +1,9 @@
 # Statements without a test, per file. Written by go run ./internal/cover;
 # CI fails when this file differs from what the tests give.
-cmd/cmslens/main.go 74 of 74
+cmd/cmslens/main.go 65 of 76
 domain.go 20 of 20
 internal/netguard/netguard.go 20 of 82
 match.go 3 of 115
 scan.go 72 of 90
 signatures.go 0 of 28
-total 189 of 409, 53.7% covered
+total 180 of 411, 56.2% covered
