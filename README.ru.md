@@ -2,7 +2,11 @@
 
 # cmslens
 
+[![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-53.7%25-red)](coverage.txt)
+[![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
+[![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 cmslens определяет, на какой CMS, конструкторе сайтов или веб-фреймворке
 работает сайт. Он читает HTML страницы и заголовки ответа и сверяет их с
@@ -117,6 +121,34 @@ names := cmslens.Detect(html, resp.Header)
    сайтов с ожидаемыми ответами. Сайты отвечают по-разному в зависимости от
    того, откуда их спрашивают, поэтому часть расхождений может идти от сети, а
    не от таблицы.
+
+## Как помочь
+
+Любая правка начинается с задачи. В отчёте об ошибке сказано, что запустили,
+что ожидали и что получили; так же сообщают о недостающей платформе или
+функции. Pull request ссылается на свою задачу и делает одно дело, а
+исправление ошибки приходит с тестом, который без него падает. В основную
+ветку правки попадают только через pull request, и он сливается при зелёном
+CI. Перед отправкой:
+
+```
+go test -race ./...
+golangci-lint run         # включены все линтеры, см. .golangci.yml
+go run ./internal/cover   # переписывает coverage.txt, его коммитят с правкой
+```
+
+В `coverage.txt` число операторов без теста в каждом файле, и CI падает, если
+файл в коммите расходится с тем, что дают тесты: правка, оставившая код без
+теста, видна в собственном диффе.
+
+## Состояние
+
+cmslens ведёт [profax](https://github.com/profax), на нём работает
+определитель на [armilen.ru](https://www.armilen.ru/services/cms). Версия
+0.x: API библиотеки ещё может меняться при смене второго числа версии, а
+правка, которая ломает вызывающий код, стоит первой в заметках к выпуску.
+Выпуск делается тегом: тег `v0.2.0` запускает CI, затем собирает программы
+для шести платформ и публикует их с заметками из слитых pull request.
 
 ## Лицензия
 
