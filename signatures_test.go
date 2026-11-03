@@ -1,20 +1,28 @@
 package cmslens
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
+	"slices"
 	"testing"
 )
 
+// scores builds a score list from name and score pairs.
 func scores(pairs ...any) []CMSScore {
 	out := make([]CMSScore, 0, len(pairs)/2)
-	for i := 0; i < len(pairs); i += 2 {
-		out = append(out, CMSScore{Name: pairs[i].(string), Score: float64(pairs[i+1].(int))})
+	for pair := range slices.Chunk(pairs, 2) {
+		name, isName := pair[0].(string)
+		score, isScore := pair[1].(int)
+		if !isName || !isScore {
+			panic(fmt.Sprintf("scores takes name and score pairs, got %v", pair))
+		}
+		out = append(out, CMSScore{Name: name, Score: float64(score)})
 	}
 	return out
 }
 
-func assertNames(t *testing.T, got []string, want []string) {
+func assertNames(t *testing.T, got, want []string) {
 	t.Helper()
 	if len(want) == 0 && len(got) == 0 {
 		return
@@ -25,6 +33,8 @@ func assertNames(t *testing.T, got []string, want []string) {
 }
 
 func TestSelectWinnersCompetingBackends(t *testing.T) {
+	t.Parallel()
+
 	assertNames(t, SelectWinners(scores("Joomla", 3, "Winter CMS", 1)), []string{"Joomla"})
 	assertNames(t, SelectWinners(scores("Drupal", 2, "WordPress", 5, "Joomla", 1)), []string{"WordPress"})
 	assertNames(t, SelectWinners(scores("MODX", 1, "Evolution CMS", 3)), []string{"Evolution CMS"})
@@ -34,6 +44,8 @@ func TestSelectWinnersCompetingBackends(t *testing.T) {
 }
 
 func TestSelectWinnersExactlyOneBackend(t *testing.T) {
+	t.Parallel()
+
 	result := SelectWinners(scores("WordPress", 2, "Joomla", 1, "Drupal", 3, "OpenCart", 1, "Bitrix", 1))
 	backendCount := 0
 	for _, name := range result {
@@ -47,6 +59,8 @@ func TestSelectWinnersExactlyOneBackend(t *testing.T) {
 }
 
 func TestSelectWinnersHeadlessPairs(t *testing.T) {
+	t.Parallel()
+
 	cases := []struct {
 		scores []CMSScore
 		front  string
@@ -62,37 +76,34 @@ func TestSelectWinnersHeadlessPairs(t *testing.T) {
 			t.Errorf("%v: want 2 results, got %v", c.scores, result)
 			continue
 		}
-		if !contains(result, c.front) || !contains(result, c.back) {
+		if !slices.Contains(result, c.front) || !slices.Contains(result, c.back) {
 			t.Errorf("%v: want %s and %s, got %v", c.scores, c.front, c.back, result)
 		}
 	}
 }
 
-func contains(list []string, item string) bool {
-	for _, v := range list {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
 func TestSelectWinnersCompetingFrontends(t *testing.T) {
+	t.Parallel()
+
 	assertNames(t, SelectWinners(scores("Next.js", 3, "React", 2)), []string{"Next.js"})
 	assertNames(t, SelectWinners(scores("Gatsby", 2, "React", 1)), []string{"Gatsby"})
 }
 
 // The October and Winter theme path weighs 0.5 and appears on unrelated sites:
 // on its own it gives no answer, and next to a real engine it does not stop
-// that engine from winning
+// that engine from winning.
 func TestSelectWinnersIgnoresBelowThreshold(t *testing.T) {
+	t.Parallel()
+
 	half := []CMSScore{{Name: "October CMS", Score: 0.5}, {Name: "Winter CMS", Score: 0.5}}
 	assertNames(t, SelectWinners(half), nil)
-	withEngine := append(half, CMSScore{Name: "ePages", Score: 1})
+	withEngine := append(slices.Clone(half), CMSScore{Name: "ePages", Score: 1})
 	assertNames(t, SelectWinners(withEngine), []string{"ePages"})
 }
 
 func TestSelectWinnersEdgeCases(t *testing.T) {
+	t.Parallel()
+
 	if got := SelectWinners(nil); len(got) != 0 {
 		t.Errorf("empty input must give empty output, got %v", got)
 	}
@@ -111,6 +122,8 @@ func TestSelectWinnersEdgeCases(t *testing.T) {
 }
 
 func TestFrontendLayerMembership(t *testing.T) {
+	t.Parallel()
+
 	expected := []string{"Next.js", "Nuxt.js", "Astro", "Svelte", "Gatsby", "React", "Vue", "Angular", "Vite"}
 	for _, fw := range expected {
 		if !frontendLayer[fw] {
@@ -128,6 +141,8 @@ func TestFrontendLayerMembership(t *testing.T) {
 // TestAllSignaturesCompile: the table has 556 signatures. The test keeps the
 // number visible on the next edit of the table.
 func TestAllSignaturesCompile(t *testing.T) {
+	t.Parallel()
+
 	if len(cmsSignatures) != 556 {
 		t.Errorf("want 556 signatures, got %d", len(cmsSignatures))
 	}
@@ -149,9 +164,12 @@ func TestAllSignaturesCompile(t *testing.T) {
 // i.e. the presentation layer instead of the engine. Another service answered
 // "VamShop" for the same site, though there is no trace of that CMS at all.
 func TestStarterAppWinsOverFrontendLayer(t *testing.T) {
+	t.Parallel()
+
 	html := `<html><head><link rel="preconnect" href="https://content.cdn.starterapp.ru">` +
 		`<script src="/_next/static/chunks/main.js"></script></head><body>` +
-		`<img src="https://cdn.starterapp.ru/logo.png"><script>fetch("https://api.starterapp.ru/v1/menu")</script></body></html>`
+		`<img src="https://cdn.starterapp.ru/logo.png">` +
+		`<script>fetch("https://api.starterapp.ru/v1/menu")</script></body></html>`
 
 	names := SelectWinners(scoreResponse(html, http.Header{"X-Powered-By": []string{"Next.js"}}))
 

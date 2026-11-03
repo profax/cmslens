@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,3 +27,20 @@ jobs:
       - run: test -z "$(gofmt -l .)"
       - run: go vet ./...
       - run: go test -race ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # nosemgrep: github-actions-mutable-action-tag
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # nosemgrep: github-actions-mutable-action-tag
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # Every linter is on (.golangci.yml); the version is fixed so that a new
+      # release cannot turn the build red on its own
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.15.0

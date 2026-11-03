@@ -1,10 +1,11 @@
+package cmslens
+
 /*
 False detections taken from live sites. Each test keeps one case: what exactly a
 feature fragment matched in someone else's text, and what the answer should be
 instead. Markup is trimmed to the relevant part; full responses are not stored
 in the repository.
 */
-package cmslens
 
 import (
 	"net/http"
@@ -18,6 +19,8 @@ import (
 // trace of Evolution on the site. Another service on the same domain came out
 // as NGCMS, which is not there either.
 func TestTransliterationDoesNotNameEvolution(t *testing.T) {
+	t.Parallel()
+
 	html := `<html><head><script>window.__NUXT__=(function(a){return {data:[{}]}})()</script></head>` +
 		`<body><a href="/derevo-alyuminievaya-sistema/derevo-alyuminievaya-sistema-gemini/">Gemini</a>` +
 		`<a href="https://ml.rbc.ru/arctic26s-c2-kmiva-dizanalevo-m">РБК</a>` +
@@ -32,6 +35,8 @@ func TestTransliterationDoesNotNameEvolution(t *testing.T) {
 // someone else's image path. `_site/` is Jekyll's build directory and never
 // appears in served URLs, so the feature was removed rather than anchored.
 func TestBuildDirectoryPathDoesNotNameJekyll(t *testing.T) {
+	t.Parallel()
+
 	html := `<html><body><img src="/Issues.photo2/WEEKEND_Online_Site/2026/08/28/KMO_17838.jpg"></body></html>`
 
 	if names := SelectWinners(scoreResponse(html, http.Header{})); len(names) != 0 {
@@ -43,10 +48,14 @@ func TestBuildDirectoryPathDoesNotNameJekyll(t *testing.T) {
 // and hand-made backends: www.rbc.ru was named Rails one day and Laravel the
 // next. Only the value `authenticity_token` is specific to Rails.
 func TestSharedCsrfTokenNamesNoEngine(t *testing.T) {
-	shared := `<html><head><meta name="csrf-token" content="9d1f"><meta name="csrf-param" content="csrf_token"></head></html>`
+	t.Parallel()
+
+	shared := `<html><head><meta name="csrf-token" content="9d1f">` +
+		`<meta name="csrf-param" content="csrf_token"></head></html>`
 	assertNames(t, SelectWinners(scoreResponse(shared, http.Header{})), nil)
 
-	rails := `<html><head><meta name="csrf-param" content="authenticity_token"><meta name="csrf-token" content="9d1f"></head></html>`
+	rails := `<html><head><meta name="csrf-param" content="authenticity_token">` +
+		`<meta name="csrf-token" content="9d1f"></head></html>`
 	assertNames(t, SelectWinners(scoreResponse(rails, http.Header{})), []string{"Ruby on Rails"})
 }
 
@@ -60,6 +69,8 @@ delimiter is the boundary.
 var bareFragment = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
 
 func TestBareFragmentsAreWordAnchored(t *testing.T) {
+	t.Parallel()
+
 	for _, entry := range cmsSignatures {
 		for _, item := range entry.sig.body {
 			src := strings.TrimPrefix(item.re.String(), "(?i)")

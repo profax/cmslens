@@ -19,6 +19,8 @@ named by CMSLENS_CORPUS. testdata/corpus.tsv gives the expected answer per
 domain; domains without one are only printed.
 */
 func TestCorpus(t *testing.T) {
+	t.Parallel()
+
 	dir := os.Getenv("CMSLENS_CORPUS")
 	if dir == "" {
 		t.Skip("CMSLENS_CORPUS is not set")
@@ -58,12 +60,13 @@ func TestCorpus(t *testing.T) {
 }
 
 func readExpect(t *testing.T, path string) map[string][]string {
+	t.Helper()
 	out := map[string][]string{}
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, line := range strings.Split(string(raw), "\n") {
+	for line := range strings.SplitSeq(string(raw), "\n") {
 		domain, names, _ := strings.Cut(line, "\t")
 		if names != "" && !strings.HasPrefix(domain, "#") {
 			out[domain] = strings.Split(names, ",")

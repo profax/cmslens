@@ -26,9 +26,9 @@ func NormalizeDomain(input string) (string, bool) {
 	str = strings.TrimPrefix(str, "https://")
 	str = strings.TrimPrefix(str, "http://")
 	str = strings.TrimPrefix(str, "www.")
-	str = strings.SplitN(str, "/", 2)[0]
-	str = strings.SplitN(str, "?", 2)[0]
-	str = strings.SplitN(str, "#", 2)[0]
+	str, _, _ = strings.Cut(str, "/")
+	str, _, _ = strings.Cut(str, "?")
+	str, _, _ = strings.Cut(str, "#")
 
 	parsed, err := url.Parse("http://" + str)
 	if err != nil {
