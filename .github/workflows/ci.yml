@@ -44,3 +44,19 @@ jobs:
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
           version: v2.15.0
+
+  cover:
+    runs-on: ubuntu-latest
+    steps:
+      # nosemgrep: github-actions-mutable-action-tag
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # nosemgrep: github-actions-mutable-action-tag
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      # The committed count of statements without a test must be what the tests
+      # give now: a change that leaves code untested shows in its own diff
+      - run: go run ./internal/cover
+      - run: git diff --exit-code -- coverage.txt README.md README.ru.md
