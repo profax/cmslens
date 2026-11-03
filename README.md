@@ -2,7 +2,11 @@
 
 # cmslens
 
+[![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-53.7%25-red)](coverage.txt)
+[![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
+[![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 cmslens tells which CMS, site builder or web framework a website runs. It reads
 the page's HTML and response headers and matches them against a table of 556
@@ -117,6 +121,33 @@ from the environment are ignored.
    with their expected answers. Sites answer differently depending on where
    you ask from, so a few mismatches can come from the network rather than the
    table.
+
+## Contributing
+
+Every change starts from an issue. A bug report says what you ran, what you
+expected and what you got; a missing platform or feature is reported the same
+way. A pull request names its issue and does one thing, and a bug fix comes
+with a test that fails without it. The main branch takes changes only through
+pull requests, merged when CI is green. Before you push:
+
+```
+go test -race ./...
+golangci-lint run         # every linter is on, see .golangci.yml
+go run ./internal/cover   # rewrites coverage.txt, commit it with the change
+```
+
+`coverage.txt` counts the statements without a test in each file, and CI
+fails when the committed copy differs from what the tests give: a change that
+leaves code untested shows that in its own diff.
+
+## Status
+
+cmslens is maintained by [profax](https://github.com/profax) and runs the
+detector on [armilen.ru](https://www.armilen.ru/en/services/cms). It is at
+0.x: the library API may still change between minor versions, and a change
+that breaks callers is listed first in the release notes. A release is a tag:
+pushing `v0.2.0` runs CI, then builds binaries for six platforms and
+publishes them with notes made from the merged pull requests.
 
 ## License
 
