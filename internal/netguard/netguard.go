@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/netip"
@@ -45,7 +46,7 @@ func blockedTarget(what string) error { return fmt.Errorf("%w: %s", ErrBlocked, 
 // that is not public": netip's ready-made predicates know private networks and
 // loopback, but not 169.254.169.254 (cloud metadata), 100.64.0.0/10 (neighbours
 // at the same provider) or 2002::/16 (the same 127.0.0.1 written as IPv6).
-var blockedRanges = []netip.Prefix{
+var blockedRanges = []netip.Prefix{ //nolint:gochecknoglobals // a fixed list, read only, built once
 	// IPv4
 	netip.MustParsePrefix("0.0.0.0/8"),       // "this host", behaves as localhost on Linux
 	netip.MustParsePrefix("10.0.0.0/8"),      // private network
@@ -140,9 +141,19 @@ func checkScheme(target *url.URL) error {
 	return nil
 }
 
+// Defaults for the zero fields of Options.
+const (
+	defaultTimeout      = 5 * time.Second
+	defaultMaxBytes     = 2 << 20
+	defaultMaxRedirects = 3
+	maxIdleConns        = 32
+	idleTimeout         = 30 * time.Second
+)
+
+// Options set the limits of a Client; a zero field takes its default.
 type Options struct {
 	Timeout      time.Duration // for the whole request, reading the body included
-	MaxBytes     int64
+	MaxBytes     int64         // the body is cut here, and Result.Truncated says so
 	MaxRedirects int
 	Header       http.Header
 	// InsecureTLS turns off certificate verification of the target. The SSRF
@@ -154,6 +165,7 @@ type Options struct {
 	InsecureTLS bool
 }
 
+// Client fetches pages through the barrier; build it with New.
 type Client struct {
 	http     *http.Client
 	timeout  time.Duration
@@ -161,6 +173,7 @@ type Client struct {
 	header   http.Header
 }
 
+// Result is one fetched page.
 type Result struct {
 	URL        string // after all redirects, not the one we started from
 	StatusCode int
@@ -169,26 +182,27 @@ type Result struct {
 	Truncated  bool
 }
 
+// New builds a Client; every connection it opens goes through guardDial.
 func New(opts Options) *Client {
 	timeout := opts.Timeout
 	if timeout <= 0 {
-		timeout = 5 * time.Second
+		timeout = defaultTimeout
 	}
 	maxBytes := opts.MaxBytes
 	if maxBytes <= 0 {
-		maxBytes = 2 << 20
+		maxBytes = defaultMaxBytes
 	}
 	maxRedirects := opts.MaxRedirects
 	if maxRedirects <= 0 {
-		maxRedirects = 3
+		maxRedirects = defaultMaxRedirects
 	}
 
-	dialer := &net.Dialer{Timeout: timeout, KeepAlive: 30 * time.Second, Control: guardDial}
+	dialer := &net.Dialer{Timeout: timeout, KeepAlive: idleTimeout, Control: guardDial}
 	var tlsConfig *tls.Config
 	if opts.InsecureTLS {
 		// Without certificate checks a minimum TLS version protects nothing
 		// nosemgrep: missing-ssl-minversion
-		tlsConfig = &tls.Config{InsecureSkipVerify: true}
+		tlsConfig = &tls.Config{InsecureSkipVerify: true} //nolint:gosec // the caller asked for it, see Options.InsecureTLS
 	}
 	return &Client{
 		http: &http.Client{
@@ -201,8 +215,8 @@ func New(opts Options) *Client {
 				DialContext:           dialer.DialContext,
 				TLSClientConfig:       tlsConfig,
 				ForceAttemptHTTP2:     true,
-				MaxIdleConns:          32,
-				IdleConnTimeout:       30 * time.Second,
+				MaxIdleConns:          maxIdleConns,
+				IdleConnTimeout:       idleTimeout,
 				TLSHandshakeTimeout:   timeout,
 				ExpectContinueTimeout: time.Second,
 			},
@@ -237,19 +251,19 @@ func (c *Client) Fetch(ctx context.Context, rawURL string) (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building request: %w", err)
 	}
-	for name, values := range c.header {
-		req.Header[name] = values
-	}
+	maps.Copy(req.Header, c.header)
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // the *url.Error already names the method and the address
 	}
-	defer resp.Body.Close()
+	// The body is read to the cap below; an error on closing it changes nothing
+	// in what was read
+	defer func() { _ = resp.Body.Close() }()
 
 	body, truncated, err := readCapped(resp.Body, c.maxBytes)
 	if err != nil {
-		return nil, fmt.Errorf("reading response body: %w", err)
+		return nil, err
 	}
 	return &Result{
 		URL:        resp.Request.URL.String(),
@@ -265,7 +279,7 @@ func (c *Client) Fetch(ctx context.Context, rawURL string) (*Result, error) {
 func readCapped(source io.Reader, maxBytes int64) ([]byte, bool, error) {
 	body, err := io.ReadAll(io.LimitReader(source, maxBytes+1))
 	if err != nil {
-		return nil, false, err
+		return nil, false, fmt.Errorf("reading response body: %w", err)
 	}
 	if int64(len(body)) > maxBytes {
 		return body[:maxBytes], true, nil

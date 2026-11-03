@@ -50,7 +50,7 @@ type cmsEntry struct {
 	sig  signature
 }
 
-var cmsSignatures = []cmsEntry{
+var cmsSignatures = []cmsEntry{ //nolint:gochecknoglobals // the table itself, read only
 	{"1C-Bitrix", signature{
 		body: []sigItem{b(`bitrix/js/`), b(`bitrix/templates/`), b(`bitrix/css/`), b(`BX\.message`), b(`\bbx-core`), b(`\bbx-panel`), b(`/upload/uf/`)},
 		headers: map[string][]sigItem{
@@ -1136,7 +1136,7 @@ var cmsSignatures = []cmsEntry{
 // frontendLayer lists presentation-layer CMSs and frameworks: a site may run
 // them on top of any backend (headless), so they do not compete with the
 // backend for its single place in the result of SelectWinners.
-var frontendLayer = map[string]bool{
+var frontendLayer = map[string]bool{ //nolint:gochecknoglobals // a fixed set, read only
 	"Next.js": true, "Nuxt.js": true, "Astro": true, "Svelte": true, "Gatsby": true,
 	"React": true, "Vue": true, "Angular": true, "Vite": true,
 }
@@ -1152,7 +1152,7 @@ type CMSScore struct {
 // minWinnerScore rejects an answer based on one weak feature: the theme path
 // `/themes/<theme>/assets/` weighs 0.5 for October and Winter and appears on
 // hundreds of unrelated sites, so without a threshold any site with no other
-// features became October
+// features became October.
 const minWinnerScore = 1
 
 /*

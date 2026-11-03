@@ -1,9 +1,11 @@
 package cmslens
 
 import (
+	"math"
 	"regexp"
 	"regexp/syntax"
 	"strings"
+	"unicode/utf8"
 )
 
 /*
@@ -13,7 +15,7 @@ platforms in the table. A literal feature is decided by the automaton alone. For
 a pattern, the automaton looks for its required pieces, and the expression runs
 only on a page where all of them were found.
 */
-var signatureIndex = newBodyIndex(cmsSignatures)
+var signatureIndex = newBodyIndex(cmsSignatures) //nolint:gochecknoglobals // built once from the table, read only
 
 // A piece shorter than three bytes occurs on every page and filters nothing
 // out.
@@ -44,7 +46,7 @@ func newBodyIndex(table []cmsEntry) *bodyIndex {
 		if id, ok := ids[s]; ok {
 			return id
 		}
-		id := int32(len(x.texts))
+		id := toID(len(x.texts))
 		ids[s] = id
 		x.texts = append(x.texts, s)
 		return id
@@ -59,16 +61,29 @@ func newBodyIndex(table []cmsEntry) *bodyIndex {
 	return x
 }
 
-func planFeature(re *regexp.Regexp, intern func(string) int32) featurePlan {
+// toID narrows a count to the automaton's index type. The table holds a few
+// thousand literals, so the panic marks a broken table, not a large page.
+func toID(n int) int32 {
+	if n < 0 || n > math.MaxInt32 {
+		panic("cmslens: too many literals for the automaton")
+	}
+	return int32(n)
+}
+
+// featureNodes splits a feature into the pieces of its top-level concatenation.
+func featureNodes(re *regexp.Regexp) []*syntax.Regexp {
 	tree, err := syntax.Parse(re.String(), syntax.Perl)
 	if err != nil {
 		panic(err)
 	}
-	nodes := []*syntax.Regexp{tree}
 	if tree.Op == syntax.OpConcat {
-		nodes = tree.Sub
+		return tree.Sub
 	}
+	return []*syntax.Regexp{tree}
+}
 
+func planFeature(re *regexp.Regexp, intern func(string) int32) featurePlan {
+	nodes := featureNodes(re)
 	plan := featurePlan{literal: -1}
 	if len(nodes) == 2 && nodes[0].Op == syntax.OpWordBoundary {
 		plan.boundary = true
@@ -95,7 +110,7 @@ func asciiLiteral(n *syntax.Regexp) (string, bool) {
 		return "", false
 	}
 	for _, r := range n.Rune {
-		if r >= 0x80 {
+		if r >= utf8.RuneSelf {
 			return "", false
 		}
 	}
@@ -155,10 +170,21 @@ type automaton struct {
 
 func newAutomaton(texts []string) *automaton {
 	a := &automaton{width: 1}
+	a.classify(texts)
+	a.grow()
+	for id, t := range texts {
+		a.insert(toID(id), t)
+	}
+	a.link()
+	return a
+}
+
+// classify gives every byte that occurs in a literal its own class.
+func (a *automaton) classify(texts []string) {
 	for _, t := range texts {
-		for i := 0; i < len(t); i++ {
+		for i := range len(t) {
 			if a.class[t[i]] == 0 {
-				a.class[t[i]] = int32(a.width)
+				a.class[t[i]] = toID(a.width)
 				a.width++
 			}
 		}
@@ -166,23 +192,27 @@ func newAutomaton(texts []string) *automaton {
 	for c := byte('A'); c <= 'Z'; c++ {
 		a.class[c] = a.class[c+'a'-'A']
 	}
+}
 
-	a.grow()
-	for id, t := range texts {
-		s := int32(0)
-		for i := 0; i < len(t); i++ {
-			k := int(s)*a.width + int(a.class[t[i]])
-			if a.next[k] == 0 {
-				// On its own line: grow reallocates a.next, and the order of evaluating the
-				// left-hand side of an assignment relative to the call is unspecified
-				n := a.grow()
-				a.next[k] = n
-			}
-			s = a.next[k]
+// insert adds one literal to the trie.
+func (a *automaton) insert(id int32, text string) {
+	s := int32(0)
+	for i := range len(text) {
+		k := int(s)*a.width + int(a.class[text[i]])
+		if a.next[k] == 0 {
+			// On its own line: grow reallocates a.next, and the order of evaluating the
+			// left-hand side of an assignment relative to the call is unspecified
+			n := a.grow()
+			a.next[k] = n
 		}
-		a.out[s] = append(a.out[s], int32(id))
+		s = a.next[k]
 	}
+	a.out[s] = append(a.out[s], id)
+}
 
+// link walks the trie breadth first and fills the missing transitions from the
+// failure links, so that scan never follows a failure link itself.
+func (a *automaton) link() {
 	fail := make([]int32, len(a.out))
 	a.suffix = make([]int32, len(a.out))
 	var queue []int32
@@ -211,18 +241,17 @@ func newAutomaton(texts []string) *automaton {
 			queue = append(queue, n)
 		}
 	}
-	return a
 }
 
 func (a *automaton) grow() int32 {
 	a.next = append(a.next, make([]int32, a.width)...)
 	a.out = append(a.out, nil)
-	return int32(len(a.out) - 1)
+	return toID(len(a.out) - 1)
 }
 
 func (a *automaton) scan(data string, emit func(id int32, end int)) {
 	s := int32(0)
-	for i := 0; i < len(data); i++ {
+	for i := range len(data) {
 		s = a.next[int(s)*a.width+int(a.class[data[i]])]
 		for t := s; t != 0; t = a.suffix[t] {
 			for _, id := range a.out[t] {

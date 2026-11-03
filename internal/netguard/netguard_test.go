@@ -11,6 +11,8 @@ import (
 )
 
 func TestClosedRangesStayClosed(t *testing.T) {
+	t.Parallel()
+
 	closed := []string{
 		"127.0.0.1", "127.1.2.3", "0.0.0.0",
 		"10.0.0.1", "192.168.1.10", "172.16.0.1", "172.31.255.254",
@@ -40,7 +42,10 @@ func TestClosedRangesStayClosed(t *testing.T) {
 }
 
 func TestPublicAddressesPass(t *testing.T) {
-	for _, raw := range []string{"8.8.8.8", "93.184.216.34", "172.32.0.1", "100.128.0.1", "2606:4700::1111", "2a00:1450:4010::200e"} {
+	t.Parallel()
+
+	public := []string{"8.8.8.8", "93.184.216.34", "172.32.0.1", "100.128.0.1", "2606:4700::1111", "2a00:1450:4010::200e"}
+	for _, raw := range public {
 		addr, err := netip.ParseAddr(raw)
 		if err != nil {
 			t.Fatalf("%s did not parse as an address: %v", raw, err)
@@ -52,7 +57,10 @@ func TestPublicAddressesPass(t *testing.T) {
 }
 
 func TestCheckHostRejectsWhatIsVisibleByName(t *testing.T) {
-	for _, host := range []string{"", "localhost", "app.localhost", "LOCALHOST", "wiki", "127.0.0.1", "169.254.169.254", "[::1]"} {
+	t.Parallel()
+
+	closed := []string{"", "localhost", "app.localhost", "LOCALHOST", "wiki", "127.0.0.1", "169.254.169.254", "[::1]"}
+	for _, host := range closed {
 		if err := CheckHost(host); !errors.Is(err, ErrBlocked) {
 			t.Errorf("host %q passed, error: %v", host, err)
 		}
@@ -65,6 +73,8 @@ func TestCheckHostRejectsWhatIsVisibleByName(t *testing.T) {
 }
 
 func TestSafeURLRejectsSchemesAndInternalTargets(t *testing.T) {
+	t.Parallel()
+
 	for _, raw := range []string{
 		"file:///etc/passwd",
 		"gopher://example.com",
@@ -86,6 +96,8 @@ func TestSafeURLRejectsSchemesAndInternalTargets(t *testing.T) {
 }
 
 func TestDialGuardChecksTheAddressItIsGiven(t *testing.T) {
+	t.Parallel()
+
 	for _, address := range []string{"127.0.0.1:80", "169.254.169.254:80", "[::1]:8088", "10.0.0.5:5432", "garbage"} {
 		if err := guardDial("tcp4", address, nil); !errors.Is(err, ErrBlocked) {
 			t.Errorf("dialing %s allowed, error: %v", address, err)
@@ -105,13 +117,25 @@ func TestDialGuardChecksTheAddressItIsGiven(t *testing.T) {
 // when its name passed. The request bypasses Fetch on purpose, skipping address
 // parsing, so only the barrier in the dialer answers here.
 func TestLoopbackServerStaysUnreachable(t *testing.T) {
+	t.Parallel()
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Write([]byte("secret"))
+		if _, err := w.Write([]byte("secret")); err != nil {
+			t.Error(err)
+		}
 	}))
 	defer server.Close()
 
 	client := New(Options{})
-	if _, err := client.http.Get(server.URL); !errors.Is(err, ErrBlocked) {
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := client.http.Do(req)
+	if err == nil {
+		_ = resp.Body.Close()
+	}
+	if !errors.Is(err, ErrBlocked) {
 		t.Fatalf("a connection to loopback opened, error: %v", err)
 	}
 	if _, err := client.Fetch(t.Context(), server.URL); !errors.Is(err, ErrBlocked) {
@@ -120,13 +144,15 @@ func TestLoopbackServerStaysUnreachable(t *testing.T) {
 }
 
 func TestRedirectPolicy(t *testing.T) {
+	t.Parallel()
+
 	client := New(Options{MaxRedirects: 2})
 
 	target, err := url.Parse("file:///etc/passwd")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := client.http.CheckRedirect(&http.Request{URL: target}, nil); !errors.Is(err, ErrBlocked) {
+	if err = client.http.CheckRedirect(&http.Request{URL: target}, nil); !errors.Is(err, ErrBlocked) {
 		t.Errorf("redirect to file:// allowed, error: %v", err)
 	}
 
@@ -134,15 +160,18 @@ func TestRedirectPolicy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := client.http.CheckRedirect(&http.Request{URL: allowed}, make([]*http.Request, 2)); err != nil {
+	next := &http.Request{URL: allowed}
+	if err = client.http.CheckRedirect(next, make([]*http.Request, 2)); err != nil {
 		t.Errorf("the second redirect was refused: %v", err)
 	}
-	if err := client.http.CheckRedirect(&http.Request{URL: allowed}, make([]*http.Request, 3)); !errors.Is(err, ErrBlocked) {
+	if err = client.http.CheckRedirect(next, make([]*http.Request, 3)); !errors.Is(err, ErrBlocked) {
 		t.Errorf("redirects never end, error: %v", err)
 	}
 }
 
 func TestReadCappedMarksTruncation(t *testing.T) {
+	t.Parallel()
+
 	body, truncated, err := readCapped(strings.NewReader("12345"), 10)
 	if err != nil || truncated || string(body) != "12345" {
 		t.Errorf("short response read wrong: %q, truncated=%v, %v", body, truncated, err)
@@ -150,7 +179,7 @@ func TestReadCappedMarksTruncation(t *testing.T) {
 
 	body, truncated, err = readCapped(strings.NewReader("1234567890"), 10)
 	if err != nil || truncated || len(body) != 10 {
-		t.Errorf("a response exactly at the cap counted as truncated: %d bytes, truncated=%v, %v", len(body), truncated, err)
+		t.Errorf("a response at the cap counted as truncated: %d bytes, truncated=%v, %v", len(body), truncated, err)
 	}
 
 	body, truncated, err = readCapped(strings.NewReader(strings.Repeat("a", 4096)), 10)

@@ -13,6 +13,8 @@ import (
 // not exercise suffix chains. Literals over a three-letter alphabet produce
 // them at once.
 func TestAutomatonFindsEveryOccurrence(t *testing.T) {
+	t.Parallel()
+
 	rng := rand.New(rand.NewPCG(1, 2))
 	word := func(n int) string {
 		b := make([]byte, n)
@@ -21,7 +23,7 @@ func TestAutomatonFindsEveryOccurrence(t *testing.T) {
 		}
 		return string(b)
 	}
-	for round := 0; round < 200; round++ {
+	for range 200 {
 		ids := map[string]bool{}
 		var texts []string
 		for len(texts) < 8 {
@@ -53,6 +55,8 @@ func TestAutomatonFindsEveryOccurrence(t *testing.T) {
 // A feature without a literal runs its expression over every page, and the
 // number of such features would grow back to the number of platforms.
 func TestEveryBodyFeatureNarrowsByLiteral(t *testing.T) {
+	t.Parallel()
+
 	for i, entry := range cmsSignatures {
 		for j, item := range entry.sig.body {
 			if p := signatureIndex.plans[i][j]; p.literal < 0 && len(p.factors) == 0 {
@@ -121,8 +125,10 @@ func exampleOf(re *syntax.Regexp) string {
 			sb.WriteString(exampleOf(sub))
 		}
 		return sb.String()
+	default:
+		// Anchors, boundaries and optional parts need no text of their own
+		return ""
 	}
-	return ""
 }
 
 func classExample(ranges []rune) rune {
@@ -145,11 +151,14 @@ func benchPage(size int) string {
 		`<script src="/wp-includes/js/jquery/jquery.min.js"></script></head><body class="home page-template">`
 	block := `<div class="wp-block-group container"><section class="catalog__item" data-id="1842">` +
 		`<a href="/catalog/derevo-alyuminievaya-sistema/okno-gemini-68/" class="catalog__link">` +
-		`<img src="/wp-content/uploads/2026/08/okno-gemini-68-300x200.jpg" alt="Окно Gemini 68" loading="lazy" width="300" height="200"></a>` +
+		`<img src="/wp-content/uploads/2026/08/okno-gemini-68-300x200.jpg" alt="Окно Gemini 68" loading="lazy"` +
+		` width="300" height="200"></a>` +
 		`<h3 class="catalog__title">Деревоалюминиевое окно Gemini 68</h3>` +
 		`<p class="catalog__text">Профиль из клеёного бруса сосны, наружная облицовка алюминием, ` +
-		`двухкамерный стеклопакет 4-16-4-16-4 с энергосберегающим покрытием. Цена от 38 400 ₽ за квадратный метр.</p>` +
-		`<button type="button" class="btn btn--primary js-order" data-product="okno-gemini-68">Рассчитать стоимость</button>` +
+		`двухкамерный стеклопакет 4-16-4-16-4 с энергосберегающим покрытием. ` +
+		`Цена от 38 400 ₽ за квадратный метр.</p>` +
+		`<button type="button" class="btn btn--primary js-order" data-product="okno-gemini-68">` +
+		`Рассчитать стоимость</button>` +
 		`</section></div>` + "\n"
 	var sb strings.Builder
 	sb.WriteString(head)

@@ -22,7 +22,11 @@ const (
 	maxRedirects        = 5
 )
 
-const defaultAcceptLanguage = "en-US,en;q=0.9"
+const (
+	defaultAcceptLanguage = "en-US,en;q=0.9"
+	userAgent             = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+		"(KHTML, like Gecko) Chrome/120.0.0.0 Safari/120.0.0.0"
+)
 
 // Options tune Scan. The zero value works: no third party is contacted, and
 // pages are requested in English.
@@ -41,7 +45,7 @@ type Options struct {
 
 func scanHeaders(opts Options) http.Header {
 	h := http.Header{}
-	h.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/120.0.0.0")
+	h.Set("User-Agent", userAgent)
 	h.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 	h.Set("Accept-Language", firstNonEmpty(opts.AcceptLanguage, defaultAcceptLanguage))
 	return h
@@ -68,10 +72,11 @@ func isWafPage(body string) bool {
 // caller sets it when neither https nor http could be opened (see Scan).
 type Status string
 
+// The values of Status.
 const (
-	StatusOK         Status = "ok"
-	StatusCloudflare Status = "cloudflare"
-	StatusFailed     Status = "failed"
+	StatusOK         Status = "ok"         // the page was read
+	StatusCloudflare Status = "cloudflare" // an anti-bot page answered, and the bypass did not get past it
+	StatusFailed     Status = "failed"     // set by the caller, see Status
 )
 
 // Details describes the response the detection was made from.
@@ -92,7 +97,9 @@ type Result struct {
 
 // performInitialFetch tries https and falls back to http. Address selection,
 // redirects and the ban on internal networks all live in netguard.Client.
-func performInitialFetch(ctx context.Context, client *netguard.Client, domain string) (string, *netguard.Result, error) {
+func performInitialFetch(
+	ctx context.Context, client *netguard.Client, domain string,
+) (string, *netguard.Result, error) {
 	httpsURL := "https://" + domain
 	if res, err := client.Fetch(ctx, httpsURL); err == nil {
 		return httpsURL, res, nil
@@ -110,13 +117,14 @@ attemptWafBypass tries ScraperAPI (when a key is set) and a direct request with
 certificate checks off in parallel; the first success wins, so a quick failure
 of one attempt does not bury the other.
 */
-func attemptWafBypass(ctx context.Context, bypassClient, scraperClient *netguard.Client, targetURL string, opts Options) *netguard.Result {
-	resultCh := make(chan *netguard.Result, 2)
+func attemptWafBypass(ctx context.Context, clients bypassPair, targetURL string, opts Options) *netguard.Result {
+	// Room for both attempts, so the one that loses does not block forever
+	resultCh := make(chan *netguard.Result, 2) //nolint:mnd // two attempts: ScraperAPI and the direct one
 	pending := 0
 
 	tryFetch := func(client *netguard.Client, u string) {
 		res, err := client.Fetch(ctx, u)
-		if err != nil || res.StatusCode != 200 || isWafPage(string(res.Body)) {
+		if err != nil || res.StatusCode != http.StatusOK || isWafPage(string(res.Body)) {
 			resultCh <- nil
 			return
 		}
@@ -134,13 +142,13 @@ func attemptWafBypass(ctx context.Context, bypassClient, scraperClient *netguard
 			scraperURL += "&country_code=" + url.QueryEscape(opts.ScraperCountry)
 		}
 		pending++
-		go tryFetch(scraperClient, scraperURL)
+		go tryFetch(clients.scraper, scraperURL)
 	}
 
 	pending++
-	go tryFetch(bypassClient, targetURL)
+	go tryFetch(clients.direct, targetURL)
 
-	for i := 0; i < pending; i++ {
+	for range pending {
 		if res := <-resultCh; res != nil {
 			return res
 		}
@@ -179,63 +187,41 @@ func Scan(ctx context.Context, input string, opts Options) (Result, error) {
 		return Result{}, fmt.Errorf("%w: %q", ErrInvalidDomain, input)
 	}
 	headers := scanHeaders(opts)
-	primaryClient := netguard.New(netguard.Options{Timeout: primaryFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects, Header: headers})
+	primaryClient := netguard.New(netguard.Options{
+		Timeout: primaryFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects, Header: headers,
+	})
 
 	targetURL, res, fetchErr := performInitialFetch(ctx, primaryClient, domain)
-	if fetchErr != nil {
+	page := netguard.Result{Header: http.Header{}}
+	switch {
+	case fetchErr == nil:
+		page = *res
+	case isNoSuchHost(fetchErr):
 		// The name is not in DNS: there is nothing to open, and the bypass would
 		// answer the same. The check sits here so that a typo in the domain does not
 		// cost the user another twenty seconds of waiting
-		var dnsErr *net.DNSError
-		if errors.As(fetchErr, &dnsErr) {
-			return Result{}, fmt.Errorf("%w: %s", ErrNoSuchHost, domain)
-		}
+		return Result{}, fmt.Errorf("%w: %s", ErrNoSuchHost, domain)
+	default:
 		targetURL = "https://" + domain
-	}
-
-	statusCode := 0
-	respHeaders := http.Header{}
-	html := ""
-	if fetchErr == nil {
-		statusCode = res.StatusCode
-		respHeaders = res.Header
-		html = string(res.Body)
 	}
 	// The Server header is taken from the direct response only: the bypass has its
 	// own, and ScraperAPI's header must not be passed off as the site's
-	serverHeader := strings.ToLower(respHeaders.Get("Server"))
-
-	needsBypass := statusCode == 403 || statusCode == 503 || isWafPage(html)
-	if fetchErr != nil {
-		// The direct request did not happen at all, but the site may be alive and
-		// simply refuse our address: anti-scraping filters block hosting ranges, and
-		// some sites do not even answer a SYN from a datacenter. Only a different
-		// address helps, so without a key the bypass is not started: a local retry
-		// differs from the failed attempt only by the certificate check, and that is
-		// not why the connection failed
-		needsBypass = opts.ScraperAPIKey != ""
-	}
+	serverHeader := strings.ToLower(page.Header.Get("Server"))
 
 	wafBehind := false
-	if needsBypass {
-		bypassClient := netguard.New(netguard.Options{Timeout: bypassFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects, Header: headers, InsecureTLS: true})
-		scraperClient := netguard.New(netguard.Options{Timeout: scraperFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects, Header: headers})
-
-		bypassed := attemptWafBypass(ctx, bypassClient, scraperClient, targetURL, opts)
+	if needsBypass(&page, fetchErr, opts) {
+		bypassed := attemptWafBypass(ctx, bypassClients(headers), targetURL, opts)
 		if bypassed == nil {
 			if fetchErr != nil {
 				return Result{}, fetchErr
 			}
-			return Result{Status: StatusCloudflare, Details: Details{Server: serverHeader, StatusCode: statusCode}}, nil
+			return Result{Status: StatusCloudflare, Details: Details{Server: serverHeader, StatusCode: page.StatusCode}}, nil
 		}
-		statusCode = bypassed.StatusCode
-		respHeaders = bypassed.Header
-		html = string(bypassed.Body)
+		page = *bypassed
 		wafBehind = true
 	}
 
-	detected := Detect(html, respHeaders)
-
+	html := string(page.Body)
 	title := ""
 	if m := titleRe.FindStringSubmatch(html); m != nil {
 		title = strings.TrimSpace(m[1])
@@ -243,10 +229,51 @@ func Scan(ctx context.Context, input string, opts Options) (Result, error) {
 
 	return Result{
 		Status:    StatusOK,
-		Detected:  detected,
+		Detected:  Detect(html, page.Header),
 		WafBehind: wafBehind,
-		Details:   Details{Title: title, Server: firstNonEmpty(serverHeader, "unknown"), StatusCode: statusCode},
+		Details: Details{
+			Title:      title,
+			Server:     firstNonEmpty(serverHeader, "unknown"),
+			StatusCode: page.StatusCode,
+		},
 	}, nil
+}
+
+func isNoSuchHost(err error) bool {
+	var dnsErr *net.DNSError
+	return errors.As(err, &dnsErr)
+}
+
+// needsBypass decides whether the direct answer is worth a second attempt.
+func needsBypass(page *netguard.Result, fetchErr error, opts Options) bool {
+	if fetchErr != nil {
+		// The direct request did not happen at all, but the site may be alive and
+		// simply refuse our address: anti-scraping filters block hosting ranges, and
+		// some sites do not even answer a SYN from a datacenter. Only a different
+		// address helps, so without a key the bypass is not started: a local retry
+		// differs from the failed attempt only by the certificate check, and that is
+		// not why the connection failed
+		return opts.ScraperAPIKey != ""
+	}
+	return page.StatusCode == http.StatusForbidden ||
+		page.StatusCode == http.StatusServiceUnavailable ||
+		isWafPage(string(page.Body))
+}
+
+type bypassPair struct {
+	direct, scraper *netguard.Client
+}
+
+func bypassClients(headers http.Header) bypassPair {
+	return bypassPair{
+		direct: netguard.New(netguard.Options{
+			Timeout: bypassFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects,
+			Header: headers, InsecureTLS: true,
+		}),
+		scraper: netguard.New(netguard.Options{
+			Timeout: scraperFetchTimeout, MaxBytes: maxScanBytes, MaxRedirects: maxRedirects, Header: headers,
+		}),
+	}
 }
 
 // Detect names the engine (and the presentation layer on top of it, if any)

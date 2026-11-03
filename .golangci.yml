@@ -1,0 +1,68 @@
+version: "2"
+
+# Every linter is on. The ones turned off below each carry the reason; a
+# linter that only restates taste stays off, one that finds defects stays on.
+linters:
+  default: all
+  disable:
+    # The zero value is part of the API (a zero Options works), and the
+    # signature table lists only the fields each entry sets
+    - exhaustruct
+    - exhaustruct_v5
+    # Blank lines are layout, and layout belongs to the formatter
+    - nlreturn
+    - wsl
+    - wsl_v5
+    # Deprecated; gomodguard_v2 runs in its place
+    - gomodguard
+    # Short names in short scopes are the Go convention
+    - varnamelen
+    # `if err := f(); err != nil` keeps err inside the check it belongs to
+    - noinlineerr
+    # The tests check unexported matcher internals (the automaton, feature
+    # plans) on purpose
+    - testpackage
+  settings:
+    depguard:
+      rules:
+        main:
+          # The module promises no dependencies outside the standard library
+          allow:
+            - $gostd
+            - github.com/profax/cmslens
+    exhaustive:
+      default-signifies-exhaustive: true
+    govet:
+      enable-all: true
+      disable:
+        # Field order follows meaning; no struct here sits on a hot path
+        - fieldalignment
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    staticcheck:
+      checks: ["all"]
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/profax/cmslens/*
+  exclusions:
+    rules:
+      # The signature table is data: header names repeat, weights are plain
+      # numbers, and a regexp cannot be wrapped without harm
+      - path: signatures\.go
+        linters: [goconst, lll, mnd]
+      # Printing its results is the command's job
+      - path: ^cmd/
+        linters: [forbidigo]
+      # Expected names repeat from case to case
+      - path: _test\.go
+        linters: [goconst]
+      # Tests read testdata, and a seeded generator keeps cases reproducible
+      - path: _test\.go
+        linters: [gosec]
+        text: "G304|G404|G703"
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
