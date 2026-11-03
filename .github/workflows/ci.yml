@@ -1,7 +1,9 @@
 name: ci
 
 on:
+  # A pull request is checked once, by its own run; pushes check main
   push:
+    branches: [main]
   pull_request:
   # The release runs the same checks before it builds anything
   workflow_call:
