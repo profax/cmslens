@@ -3,7 +3,7 @@
 # cmslens
 
 [![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-56.2%25-red)](coverage.txt)
+[![Coverage](https://img.shields.io/badge/coverage-61.0%25-yellow)](coverage.txt)
 [![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
 [![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
