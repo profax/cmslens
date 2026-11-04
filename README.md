@@ -3,7 +3,7 @@
 # cmslens
 
 [![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-61.0%25-yellow)](coverage.txt)
+[![Coverage](https://img.shields.io/badge/coverage-66.1%25-yellow)](coverage.txt)
 [![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
 [![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -67,8 +67,10 @@ fmt.Println(res.Detected) // [Next.js WordPress]
 names := cmslens.Detect(html, resp.Header)
 ```
 
-`Scan` accepts a URL or a bare host. Its result has a `Status`: `ok`, or
-`cloudflare` when an anti-bot page stood in the way and could not be passed.
+`Scan` accepts a URL or a bare host, in Cyrillic or another script too:
+`президент.рф` is fetched as `xn--d1abbgf6aiiy.xn--p1ai`. Its result has a
+`Status`: `ok`, or `cloudflare` when an anti-bot page stood in the way and
+could not be passed.
 `errors.Is(err, cmslens.ErrNoSuchHost)` tells a typo in the name from a site
 that did not answer.
 
