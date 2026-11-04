@@ -20,6 +20,11 @@ func TestNormalizeDomainKeepsTheHost(t *testing.T) {
 		"shop.example.co.uk":                "shop.example.co.uk",
 		"xn--d1abbgf6aiiy.xn--p1ai":         "xn--d1abbgf6aiiy.xn--p1ai",
 		"HTTPS://XN--D1ABBGF6AIIY.XN--P1AI": "xn--d1abbgf6aiiy.xn--p1ai",
+		// A name in another script is typed as is and fetched as punycode
+		"президент.рф":               "xn--d1abbgf6aiiy.xn--p1ai",
+		"https://www.Пример.РФ/путь": "xn--e1afmkfd.xn--p1ai",
+		"пример.com":                 "xn--e1afmkfd.com",
+		"shop.испытание.рф":          "shop.xn--80akhbyknj4f.xn--p1ai",
 	}
 	for input, want := range cases {
 		got, ok := NormalizeDomain(input)
