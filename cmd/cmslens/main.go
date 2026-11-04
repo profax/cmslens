@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Oleg Smirnov
+// SPDX-License-Identifier: MIT
+
 // Command cmslens tells which CMS or framework a website runs.
 //
 //	cmslens example.com wordpress.org

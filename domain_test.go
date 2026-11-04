@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Oleg Smirnov
+// SPDX-License-Identifier: MIT
+
 package cmslens
 
 import "testing"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Oleg Smirnov
+// SPDX-License-Identifier: MIT
+
 // Package netguard is the only way out to the network for code that fetches an
 // address supplied by a user.
 //
