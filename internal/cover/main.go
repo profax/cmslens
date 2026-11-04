@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Oleg Smirnov
+// SPDX-License-Identifier: MIT
+
 // Command cover measures test coverage the way CI checks it: the number of
 // statements without a test, per file. It writes coverage.txt and the coverage
 // badge in both READMEs; CI runs it and fails when the result differs from

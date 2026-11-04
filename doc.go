@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Oleg Smirnov
+// SPDX-License-Identifier: MIT
+
 // Package cmslens tells which CMS, site builder or web framework a website
 // runs, from its HTML and response headers.
 //

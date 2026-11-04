@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-FileCopyrightText: 2026 Oleg Smirnov
+# SPDX-License-Identifier: MIT
 # Downloads the markup of the domains in corpus.tsv for TestCorpus.
 #
 # Sites answer differently depending on where you ask from: a datacenter
