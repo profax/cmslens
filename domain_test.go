@@ -3,7 +3,10 @@
 
 package cmslens
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestNormalizeDomainKeepsTheHost(t *testing.T) {
 	t.Parallel()
@@ -44,6 +47,8 @@ func TestNormalizeDomainRejectsWhatIsNotADomain(t *testing.T) {
 		"localhost", "intranet", "a.b",
 		"1.2.3.4", "https://192.168.1.1/admin", "[::1]", "http://[::1]:8080/",
 		"-bad.example.com", "ex ample.com", "example.c0m",
+		// Longer than a DNS label once in punycode
+		strings.Repeat("я", 60) + ".рф",
 	} {
 		if got, ok := NormalizeDomain(input); ok {
 			t.Errorf("NormalizeDomain(%q) = %q, want a rejection", input, got)

@@ -8,15 +8,18 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/profax/cmslens/internal/punycode"
 )
 
-// hostnameRe: after url.Parse the host is already punycode, so the TLD may look
-// like xn--p1ai (.рф).
+// hostnameRe checks the ASCII form of the host: a name typed in Cyrillic
+// reaches it as punycode, so the TLD may look like xn--p1ai (.рф).
 var hostnameRe = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?\.(?:xn--[a-z0-9-]+|[a-z]{2,})$`)
 
 /*
 NormalizeDomain turns user input (a URL, a bare host, with or without www) into
-a host name to scan. IP literals are rejected: there is no reason to scan by
+a host name to scan. A name in Cyrillic or another script comes back as
+punycode: президент.рф becomes xn--d1abbgf6aiiy.xn--p1ai. IP literals are rejected: there is no reason to scan by
 address bypassing DNS, and an address is the easiest way to reach an internal
 network (the fetcher also checks the address it actually connects to, not just
 the name typed in).
@@ -40,6 +43,11 @@ func NormalizeDomain(input string) (string, bool) {
 	host := parsed.Hostname()
 
 	if host == "" || strings.HasPrefix(host, "[") {
+		return "", false
+	}
+	// url.Parse leaves the host as typed; DNS and the checks below need ASCII
+	host, err = punycode.ToASCII(host)
+	if err != nil {
 		return "", false
 	}
 	if _, err := netip.ParseAddr(host); err == nil {
