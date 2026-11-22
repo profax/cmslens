@@ -51,6 +51,30 @@ jobs:
         with:
           version: v2.15.0
 
+  # The Rust crate next to the Go module: the oldest Rust it promises
+  # (rust-version in Cargo.toml) and the newest. Lints change between
+  # releases, so clippy runs on the newest only
+  rust:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain: ["1.88", "stable"]
+    steps:
+      # nosemgrep: github-actions-mutable-action-tag
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # rustup is on the runner image, so no third-party action is needed
+      - run: |
+          rustup toolchain install "$TOOLCHAIN" --profile minimal --component clippy,rustfmt
+          rustup default "$TOOLCHAIN"
+        env:
+          TOOLCHAIN: ${{ matrix.toolchain }}
+      - run: cargo fmt --check
+      - if: matrix.toolchain == 'stable'
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+
   cover:
     runs-on: ubuntu-latest
     steps:
