@@ -192,7 +192,7 @@ const IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 pub(crate) struct Options {
     /// For the whole request, reading the body included.
     pub(crate) timeout: Duration,
-    /// The body is cut here, and `Fetched::truncated` says so.
+    /// The body is cut here.
     pub(crate) max_bytes: u64,
     pub(crate) max_redirects: usize,
     pub(crate) header: HeaderMap,
@@ -217,15 +217,11 @@ pub(crate) struct Client {
 /// One fetched page.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Fetched {
-    /// After all redirects, not the one we started from.
-    #[allow(dead_code)] // part of the answer as Go gives it; the scanner reads the rest
-    pub(crate) url: String,
     pub(crate) status_code: u16,
     pub(crate) header: HeaderMap,
-    /// Raw bytes: decoding from legacy charsets is up to the page parser.
+    /// Raw bytes, cut at the cap: decoding from legacy charsets is up to the
+    /// page parser.
     pub(crate) body: Vec<u8>,
-    #[allow(dead_code)]
-    pub(crate) truncated: bool,
 }
 
 /// Builds a client; every connection it opens goes through the resolver's
@@ -472,18 +468,17 @@ impl Client {
             .send()
             .await
             .map_err(|e| request_error(&shown, &target, &e))?;
-        let url = resp.url().to_string();
         let status_code = resp.status().as_u16();
         let header = resp.headers().clone();
-        let (body, truncated) = read_capped(resp.bytes_stream(), self.max_bytes)
+        // Whether the page was cut does not change the answer: features sit in
+        // the first megabytes, and the detector reads what it got
+        let (body, _truncated) = read_capped(resp.bytes_stream(), self.max_bytes)
             .await
             .map_err(|e| Error::Other(format!("reading response body: {}", error_text(&e))))?;
         Ok(Fetched {
-            url,
             status_code,
             header,
             body,
-            truncated,
         })
     }
 }
