@@ -74,6 +74,30 @@ could not be passed.
 `errors.Is(err, cmslens.ErrNoSuchHost)` tells a typo in the name from a site
 that did not answer.
 
+## Rust
+
+The repository also holds the detector as a Rust crate, translated from the Go
+package and checked against it: on the 2,815 pages of the corpus both give the
+same answers with the same scores, and on live sites the same JSON lines. The
+crate is meant to replace the Go module. Until then the Go package is the
+reference, and the two tables are kept the same by a test.
+
+```toml
+[dependencies]
+cmslens = { git = "https://github.com/profax/cmslens", rev = "<commit>" }
+```
+
+```rust
+let res = cmslens::scan("https://example.com/some/page", &cmslens::Options::default()).await?;
+println!("{:?}", res.detected); // ["Next.js", "WordPress"]
+
+let names = cmslens::detect(&body, &headers);
+```
+
+`cargo install --git https://github.com/profax/cmslens cmslens` builds the
+same command, with the same flags and the same output. The crate needs Rust
+1.88 or newer.
+
 ## How detection works
 
 Each platform has weighted features in the page body (asset paths, generator
@@ -107,9 +131,11 @@ from the environment are ignored.
 
 ## Adding a platform
 
-1. Add an entry to `cmsSignatures` in [`signatures.go`](signatures.go). Prefer
-   features the platform itself emits (its CDN host, generator, cookie) over
-   its name, which other sites mention too.
+1. Add an entry to `cmsSignatures` in [`signatures.go`](signatures.go) and
+   the same entry to `CMS_SIGNATURES` in
+   [`src/signatures.rs`](src/signatures.rs). Prefer features the platform
+   itself emits (its CDN host, generator, cookie) over its name, which other
+   sites mention too.
 2. If a real site was detected wrongly, add the trimmed markup as a test in
    [`falsepositive_test.go`](falsepositive_test.go).
 3. Check the whole table against live sites:
@@ -136,6 +162,7 @@ pull requests, merged when CI is green. Before you push:
 go test -race ./...
 golangci-lint run         # every linter is on, see .golangci.yml
 go run ./internal/cover   # rewrites coverage.txt, commit it with the change
+cargo test && cargo clippy --all-targets -- -D warnings
 ```
 
 `coverage.txt` counts the statements without a test in each file, and CI
