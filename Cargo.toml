@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Oleg Smirnov
+# SPDX-License-Identifier: MIT
+
+[package]
+name = "cmslens"
+description = "Tells which CMS, site builder or web framework a website runs"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+repository = "https://github.com/profax/cmslens"
+readme = "README.md"
+keywords = ["cms", "detection", "fingerprint", "website", "cli"]
+categories = ["command-line-utilities", "web-programming"]
+# The Go module next to the crate stays where it is until the crate replaces it
+exclude = ["*.go", "go.mod", "cmd/", "internal/", "coverage.txt", ".goreleaser.yaml", ".golangci.yml"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "cmslens"
+path = "src/main.rs"
+
+[dependencies]
+aho-corasick = "1.1.5"
+futures = "0.3.34"
+http = "1.5.0"
+memchr = "2.8.0"
+regex = "1.13.2"
+regex-syntax = "0.8.12"
+# rustls with ring and Mozilla's roots: one static file carries everything it
+# needs, with no system certificate store and no C toolchain beyond ring's
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider", "http2", "gzip", "stream"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+tokio = { version = "1.54.1", features = ["net", "time", "rt-multi-thread", "macros", "sync"] }
+url = "2.5.9"
+webpki-roots = "1.0.12"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+
+[profile.release]
+strip = true
+lto = "thin"

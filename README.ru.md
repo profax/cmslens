@@ -73,6 +73,29 @@ names := cmslens.Detect(html, resp.Header)
 стояла страница защиты от ботов и пройти её не удалось. `errors.Is(err, cmslens.ErrNoSuchHost)`
 отличает опечатку в имени от сайта, который не ответил.
 
+## Rust
+
+В репозитории есть и крейт Rust с тем же детектором. Он переведён с пакета Go
+и сверен с ним: на 2 815 страницах корпуса оба дают одни и те же ответы с теми
+же баллами, на живых сайтах одни и те же строки JSON. Крейт придёт на смену
+модулю Go. До тех пор образцом остаётся пакет Go, а одинаковость двух таблиц
+держит тест.
+
+```toml
+[dependencies]
+cmslens = { git = "https://github.com/profax/cmslens", rev = "<коммит>" }
+```
+
+```rust
+let res = cmslens::scan("https://example.com/some/page", &cmslens::Options::default()).await?;
+println!("{:?}", res.detected); // ["Next.js", "WordPress"]
+
+let names = cmslens::detect(&body, &headers);
+```
+
+`cargo install --git https://github.com/profax/cmslens cmslens` собирает ту же
+команду с теми же флагами и тем же выводом. Крейту нужен Rust 1.88 или новее.
+
 ## Как устроено определение
 
 У каждой платформы есть признаки с весами в теле страницы (пути к файлам,
@@ -106,7 +129,8 @@ names := cmslens.Detect(html, resp.Header)
 
 ## Как добавить платформу
 
-1. Добавьте запись в `cmsSignatures` в [`signatures.go`](signatures.go).
+1. Добавьте запись в `cmsSignatures` в [`signatures.go`](signatures.go) и ту
+   же запись в `CMS_SIGNATURES` в [`src/signatures.rs`](src/signatures.rs).
    Лучше брать признаки, которые оставляет сама платформа (адрес её CDN,
    generator, куки), а не её название: его упоминают и другие сайты.
 2. Если платформа определилась на настоящем сайте неверно, добавьте
@@ -136,6 +160,7 @@ CI. Перед отправкой:
 go test -race ./...
 golangci-lint run         # включены все линтеры, см. .golangci.yml
 go run ./internal/cover   # переписывает coverage.txt, его коммитят с правкой
+cargo test && cargo clippy --all-targets -- -D warnings
 ```
 
 В `coverage.txt` число операторов без теста в каждом файле, и CI падает, если

@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Oleg Smirnov
+# SPDX-License-Identifier: MIT
+
+# Product names in the docs are names, not code: ".." keeps the defaults
+doc-valid-idents = ["..", "ScraperAPI", "InstantCMS", "WordPress", "StarterApp", "VamShop", "NGCMS", "SaaS"]
