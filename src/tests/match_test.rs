@@ -7,9 +7,9 @@ use regex::Regex;
 use regex_syntax::ast::{self, Ast};
 
 use crate::gostr::go_string;
-use crate::matching::{Automaton, MIN_FACTOR_LEN, SIGNATURE_INDEX};
+use crate::matching::{Automaton, BodyIndex, MIN_FACTOR_LEN, SIGNATURE_INDEX};
 use crate::re2;
-use crate::signatures::COMPILED;
+use crate::signatures::{COMPILED, compile_table};
 
 /// A small deterministic generator: the tests must give the same text on
 /// every run, and the crate needs no dependency for it.
@@ -137,8 +137,8 @@ fn index_agrees_with_regexp() {
         let hits = SIGNATURE_INDEX.scan(html.as_bytes());
         for (i, entry) in COMPILED.iter().enumerate() {
             for (j, f) in entry.body.iter().enumerate() {
-                let got = SIGNATURE_INDEX.plans[i][j].matches(&hits, &f.re, html);
-                let want = f.re.is_match(html);
+                let got = SIGNATURE_INDEX.plans[i][j].matches(&hits, f, html);
+                let want = f.re().is_match(html);
                 assert_eq!(
                     got, want,
                     "{}, feature {:?} on {:.200?}: index {got}, expression {want}",
@@ -339,4 +339,38 @@ fn unescape(s: &str) -> String {
         }
     }
     out
+}
+
+/// A literal feature is decided by the automaton and never builds its
+/// expression: a built one keeps its program and search caches for the life of
+/// the service, and building all of them took the service from 22 to 40 MB
+/// after eight checks. The page here holds every literal of the table.
+#[test]
+fn literal_features_build_no_expression() {
+    let table = compile_table();
+    let index = BodyIndex::new(&table);
+    let html = index.texts.join(" ");
+    let hits = index.scan(html.as_bytes());
+    let mut literals = 0;
+    for (i, entry) in table.iter().enumerate() {
+        for (j, f) in entry.body.iter().enumerate() {
+            let plan = &index.plans[i][j];
+            plan.matches(&hits, f, &html);
+            if plan.literal.is_some() {
+                literals += 1;
+                assert!(
+                    !f.is_built(),
+                    "{}: {:?} built its expression",
+                    entry.name,
+                    f.go
+                );
+            } else {
+                assert!(f.is_built(), "{}: {:?} was not checked", entry.name, f.go);
+            }
+        }
+    }
+    assert!(
+        literals > 400,
+        "only {literals} literal features: the plan changed"
+    );
 }

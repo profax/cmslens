@@ -381,7 +381,7 @@ pub(crate) fn score_response(raw: &[u8], html: &str, headers: &HeaderMap) -> Vec
     for (i, entry) in COMPILED.iter().enumerate() {
         let mut score = 0.0;
         for (j, f) in entry.body.iter().enumerate() {
-            if index.plans[i][j].matches(&hits, &f.re, html) {
+            if index.plans[i][j].matches(&hits, f, html) {
                 score += f.weight;
             }
         }
@@ -396,7 +396,7 @@ pub(crate) fn score_response(raw: &[u8], html: &str, headers: &HeaderMap) -> Vec
             }
             let val = vals.join(", ");
             for f in items {
-                if f.re.is_match(&val) {
+                if f.re().is_match(&val) {
                     score += f.weight;
                 }
             }

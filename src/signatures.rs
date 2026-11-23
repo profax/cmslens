@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Oleg Smirnov
 // SPDX-License-Identifier: MIT
 
-use std::sync::LazyLock;
+use std::sync::{LazyLock, OnceLock};
 
 use regex::Regex;
 
@@ -74,12 +74,32 @@ const NONE: Signature = Signature {
 };
 
 /// A feature ready to match: the expression as Go wrote it (with its `(?i)`,
-/// which the index plans from) and the expression `regex` runs.
+/// which the index plans from) and the expression `regex` runs. The expression
+/// is built on its first use: most body features are decided by the automaton
+/// alone and never need it, and a built expression keeps its program and
+/// search caches for the life of the process.
 #[derive(Debug)]
 pub(crate) struct Feature {
     pub(crate) go: String,
-    pub(crate) re: Regex,
+    re: OnceLock<Regex>,
     pub(crate) weight: f64,
+}
+
+impl Feature {
+    /// A feature that does not compile is a broken table, not a bad page, so
+    /// it panics like `regexp.MustCompile`; `all_signatures_compile` builds
+    /// every one to catch that before a release.
+    pub(crate) fn re(&self) -> &Regex {
+        self.re.get_or_init(|| {
+            Regex::new(&re2::translate(&self.go))
+                .unwrap_or_else(|e| panic!("feature {:?} does not compile: {e}", self.go))
+        })
+    }
+
+    #[cfg(test)]
+    pub(crate) fn is_built(&self) -> bool {
+        self.re.get().is_some()
+    }
 }
 
 #[derive(Debug)]
@@ -90,19 +110,18 @@ pub(crate) struct CompiledEntry {
 }
 
 fn compile(item: &SigItem) -> Feature {
-    let go = format!("(?i){}", item.pattern);
-    let re = Regex::new(&re2::translate(&go))
-        .unwrap_or_else(|e| panic!("feature {go:?} does not compile: {e}"));
     Feature {
-        go,
-        re,
+        go: format!("(?i){}", item.pattern),
+        re: OnceLock::new(),
         weight: item.weight,
     }
 }
 
-/// The table compiled once, in table order. A feature that does not compile is
-/// a broken table, not a bad page, so it panics like `regexp.MustCompile`.
-pub(crate) static COMPILED: LazyLock<Vec<CompiledEntry>> = LazyLock::new(|| {
+/// The table in table order; each expression is built on first use, see
+/// `Feature::re`.
+pub(crate) static COMPILED: LazyLock<Vec<CompiledEntry>> = LazyLock::new(compile_table);
+
+pub(crate) fn compile_table() -> Vec<CompiledEntry> {
     CMS_SIGNATURES
         .iter()
         .map(|e| CompiledEntry {
@@ -116,7 +135,7 @@ pub(crate) static COMPILED: LazyLock<Vec<CompiledEntry>> = LazyLock::new(|| {
                 .collect(),
         })
         .collect()
-});
+}
 
 #[rustfmt::skip]
 pub(crate) static CMS_SIGNATURES: &[CmsEntry] = &[
