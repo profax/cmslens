@@ -189,6 +189,13 @@ fn frontend_layer_membership() {
 fn all_signatures_compile() {
     assert_eq!(CMS_SIGNATURES.len(), 556);
     assert_eq!(COMPILED.len(), 556);
+    // Expressions are built on first use; build each one here
+    for entry in COMPILED.iter() {
+        let headers = entry.headers.iter().flat_map(|(_, items)| items);
+        for f in entry.body.iter().chain(headers) {
+            f.re();
+        }
+    }
     let mut seen = HashSet::new();
     for entry in CMS_SIGNATURES {
         assert!(

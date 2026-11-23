@@ -10,10 +10,9 @@
 use std::sync::LazyLock;
 
 use aho_corasick::{AhoCorasick, MatchKind};
-use regex::Regex;
 use regex_syntax::ast::{self, Ast};
 
-use crate::signatures::{COMPILED, CompiledEntry};
+use crate::signatures::{COMPILED, CompiledEntry, Feature};
 
 /// A piece shorter than three bytes occurs on every page and filters nothing
 /// out.
@@ -93,7 +92,7 @@ impl BodyIndex {
 impl FeaturePlan {
     /// `html` is the body as raw bytes for the automaton's answer and as text
     /// for the expression; the two are the same page.
-    pub(crate) fn matches(&self, h: &BodyHits, re: &Regex, html: &str) -> bool {
+    pub(crate) fn matches(&self, h: &BodyHits, f: &Feature, html: &str) -> bool {
         if let Some(id) = self.literal {
             return if self.boundary {
                 h.bounded[id]
@@ -104,7 +103,7 @@ impl FeaturePlan {
         if self.factors.iter().any(|&f| !h.seen[f]) {
             return false;
         }
-        re.is_match(html)
+        f.re().is_match(html)
     }
 }
 
