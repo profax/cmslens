@@ -3,7 +3,7 @@
 # cmslens
 
 [![CI](https://github.com/armilenru/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/armilenru/cmslens/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-66.1%25-yellow)](coverage.txt)
+[![Coverage](https://img.shields.io/badge/coverage-66.3%25-yellow)](coverage.txt)
 [![Go Reference](https://pkg.go.dev/badge/github.com/armilenru/cmslens.svg)](https://pkg.go.dev/github.com/armilenru/cmslens)
 [![Release](https://img.shields.io/github/v/release/armilenru/cmslens)](https://github.com/armilenru/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)

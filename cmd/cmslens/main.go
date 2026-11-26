@@ -38,10 +38,12 @@ func moduleVersion() string {
 }
 
 // printedVersion picks between set, the version the release build wrote in,
-// and module, the version of the main module in the build info.
+// and module, the version of the main module in the build info. The module
+// version loses its leading v, so every build prints the form of the release
+// archive and of the Rust build: cmslens 0.2.0.
 func printedVersion(set, module string) string {
 	if set == "dev" && module != "" && module != "(devel)" {
-		return module
+		return strings.TrimPrefix(module, "v")
 	}
 	return set
 }
