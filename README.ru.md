@@ -2,10 +2,10 @@
 
 # cmslens
 
-[![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
+[![CI](https://github.com/armilenru/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/armilenru/cmslens/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-66.1%25-yellow)](coverage.txt)
 [![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
-[![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
+[![Release](https://img.shields.io/github/v/release/armilenru/cmslens)](https://github.com/armilenru/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 cmslens определяет, на какой CMS, конструкторе сайтов или веб-фреймворке
@@ -34,7 +34,7 @@ go install github.com/profax/cmslens/cmd/cmslens@latest
 ```
 
 Готовые программы для Linux, macOS и Windows приложены к каждому
-[выпуску](https://github.com/profax/cmslens/releases).
+[выпуску](https://github.com/armilenru/cmslens/releases).
 
 ## Командная строка
 
@@ -83,7 +83,7 @@ names := cmslens.Detect(html, resp.Header)
 
 ```toml
 [dependencies]
-cmslens = { git = "https://github.com/profax/cmslens", rev = "<коммит>" }
+cmslens = { git = "https://github.com/armilenru/cmslens", rev = "<коммит>" }
 ```
 
 ```rust
@@ -93,7 +93,7 @@ println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 let names = cmslens::detect(&body, &headers);
 ```
 
-`cargo install --git https://github.com/profax/cmslens cmslens` собирает ту же
+`cargo install --git https://github.com/armilenru/cmslens cmslens` собирает ту же
 команду с теми же флагами и тем же выводом. Крейту нужен Rust 1.88 или новее.
 
 ## Как устроено определение

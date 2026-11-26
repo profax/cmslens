@@ -18,7 +18,7 @@ control, and a public web service runs on it. These count as vulnerabilities:
 
 Please report privately, not in a public issue:
 
-- on GitHub: [Report a vulnerability](https://github.com/profax/cmslens/security/advisories/new);
+- on GitHub: [Report a vulnerability](https://github.com/armilenru/cmslens/security/advisories/new);
 - by email: info@armilen.ru.
 
 Include the cmslens version (`cmslens -version`) and, if you can, the address
