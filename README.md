@@ -20,7 +20,7 @@ standard library.
 Try it in the browser: [armilen.ru/en/services/cms](https://www.armilen.ru/en/services/cms)
 runs on cmslens.
 
-```
+```text
 $ cmslens wordpress.org tilda.cc 1c-bitrix.ru
 wordpress.org	WordPress
 tilda.cc	Tilda
@@ -29,7 +29,7 @@ tilda.cc	Tilda
 
 ## Install
 
-```
+```sh
 go install github.com/armilenru/cmslens/cmd/cmslens@latest
 ```
 
@@ -38,7 +38,7 @@ Ready-made binaries for Linux, macOS and Windows are attached to each
 
 ## Command line
 
-```
+```text
 cmslens [flags] domain...
 cmslens -file page.html
 ```
