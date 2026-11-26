@@ -239,7 +239,7 @@ async fn attempt_waf_bypass(
 /// query.
 pub(crate) fn scraper_api_url(opts: &Options, target_url: &str) -> String {
     let mut u = format!(
-        "http://api.scraperapi.com?api_key={}&url={}",
+        "https://api.scraperapi.com?api_key={}&url={}",
         query_escape(&opts.scraper_api_key),
         query_escape(target_url)
     );
