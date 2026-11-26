@@ -139,13 +139,8 @@ func attemptWafBypass(ctx context.Context, clients bypassPair, targetURL string,
 		// credit instead of ten. Signatures read the server's markup, and the direct
 		// path does not execute it either; rendering the page would mean checking
 		// something other than what the main fetcher sees
-		scraperURL := "http://api.scraperapi.com?api_key=" + url.QueryEscape(opts.ScraperAPIKey) +
-			"&url=" + url.QueryEscape(targetURL)
-		if opts.ScraperCountry != "" {
-			scraperURL += "&country_code=" + url.QueryEscape(opts.ScraperCountry)
-		}
 		pending++
-		go tryFetch(clients.scraper, scraperURL)
+		go tryFetch(clients.scraper, scraperAPIURL(opts, targetURL))
 	}
 
 	pending++
@@ -157,6 +152,17 @@ func attemptWafBypass(ctx context.Context, clients bypassPair, targetURL string,
 		}
 	}
 	return nil
+}
+
+// scraperAPIURL is the ScraperAPI request that fetches targetURL. The key
+// travels in the query.
+func scraperAPIURL(opts Options, targetURL string) string {
+	u := "http://api.scraperapi.com?api_key=" + url.QueryEscape(opts.ScraperAPIKey) +
+		"&url=" + url.QueryEscape(targetURL)
+	if opts.ScraperCountry != "" {
+		u += "&country_code=" + url.QueryEscape(opts.ScraperCountry)
+	}
+	return u
 }
 
 // ErrNoSuchHost separates a typo in the address from a site we could not reach.
