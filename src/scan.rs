@@ -75,16 +75,18 @@ fn is_waf_page(body: &[u8]) -> bool {
     has("ddos-guard") && body.len() < 20000
 }
 
-/// The outcome of a scan. `Failed` is never returned by `scan`: the caller
-/// sets it when neither https nor http could be opened (see `scan`).
+/// The outcome of a scan. `scan` never returns `Failed`: when it cannot read
+/// the site, it returns an error instead. The value is for a caller that keeps
+/// a status next to such an error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Status {
     /// The page was read.
     Ok,
-    /// An anti-bot page answered, and the bypass did not get past it.
+    /// The site answered 403, 503 or an anti-bot page, and the bypass did not
+    /// get past it.
     Cloudflare,
-    /// Set by the caller, see the type.
+    /// Never returned by `scan`, see the type.
     Failed,
 }
 
@@ -111,7 +113,8 @@ pub struct Details {
 }
 
 /// What `scan` found. `detected` holds at most one backend engine and at most
-/// one presentation layer on top of it, such as `["Next.js", "WordPress"]`.
+/// one presentation layer on top of it, such as `["Next.js", "WordPress"]`:
+/// the name with the higher score first, on a tie the engine.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScanResult {
     pub status: Status,

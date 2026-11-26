@@ -71,15 +71,16 @@ func isWafPage(body string) bool {
 	return strings.Contains(body, "ddos-guard") && len(body) < 20000
 }
 
-// Status is the outcome of a scan. StatusFailed is never returned by Scan: the
-// caller sets it when neither https nor http could be opened (see Scan).
+// Status is the outcome of a scan. Scan never returns StatusFailed: when it
+// cannot read the site, it returns an error instead. The value is for a caller
+// that keeps a status next to such an error.
 type Status string
 
 // The values of Status.
 const (
 	StatusOK         Status = "ok"         // the page was read
-	StatusCloudflare Status = "cloudflare" // an anti-bot page answered, and the bypass did not get past it
-	StatusFailed     Status = "failed"     // set by the caller, see Status
+	StatusCloudflare Status = "cloudflare" // 403, 503 or an anti-bot page, and the bypass did not get past it
+	StatusFailed     Status = "failed"     // never returned by Scan, see Status
 )
 
 // Details describes the response the detection was made from.
@@ -90,7 +91,8 @@ type Details struct {
 }
 
 // Result is what Scan found. Detected holds at most one backend engine and at
-// most one presentation layer on top of it, such as [Next.js WordPress].
+// most one presentation layer on top of it, such as [Next.js WordPress]: the
+// name with the higher score first, on a tie the engine.
 type Result struct {
 	Status    Status   `json:"status"`
 	Detected  []string `json:"detected"`

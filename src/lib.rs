@@ -10,8 +10,9 @@
 //! retry a site that blocks it through ScraperAPI.
 //!
 //! A result names at most one backend engine and at most one presentation
-//! layer on top of it: a headless site answers `["Next.js", "WordPress"]`, an
-//! ordinary one `["WordPress"]`.
+//! layer on top of it: a headless site answers two names, such as
+//! `["Next.js", "WordPress"]`, an ordinary one `["WordPress"]`. The name with
+//! the higher score comes first; on a tie the engine does.
 //!
 //! The crate gives the same answers as the Go package it was translated from,
 //! byte for byte where the Go package wrote text: the expressions of the table
