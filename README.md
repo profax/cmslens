@@ -77,15 +77,18 @@ site that prints `unknown` or `blocked by an anti-bot page` counts as read.
 import "github.com/armilenru/cmslens"
 
 // Fetch the site and detect.
-res, err := cmslens.Scan(ctx, "https://example.com/some/page", cmslens.Options{})
+res, err := cmslens.Scan(ctx, "example.com", cmslens.Options{})
 fmt.Println(res.Detected) // [Next.js WordPress]
 
 // Or detect from a page you already have.
 names := cmslens.Detect(html, resp.Header)
 ```
 
-`Scan` accepts a URL or a bare host, in Cyrillic or another script too:
-`президент.рф` is fetched as `xn--d1abbgf6aiiy.xn--p1ai`. Its result has a
+`Scan` takes a host name or a URL and fetches the home page of that host: the
+path, the query, the port and a leading `www.` are dropped, so
+`https://www.example.com/some/page` is fetched as `example.com`. A name in
+Cyrillic or another script works too: `президент.рф` is fetched as
+`xn--d1abbgf6aiiy.xn--p1ai`. Its result has a
 `Status`: `ok`, or `cloudflare` when an anti-bot page stood in the way and
 could not be passed.
 `errors.Is(err, cmslens.ErrNoSuchHost)` tells a typo in the name from a site
@@ -105,7 +108,7 @@ cmslens = { git = "https://github.com/armilenru/cmslens", rev = "<commit>" }
 ```
 
 ```rust
-let res = cmslens::scan("https://example.com/some/page", &cmslens::Options::default()).await?;
+let res = cmslens::scan("example.com", &cmslens::Options::default()).await?;
 println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 
 let names = cmslens::detect(&body, &headers);

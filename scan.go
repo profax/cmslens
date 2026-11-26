@@ -184,8 +184,9 @@ func firstNonEmpty(a, b string) string {
 }
 
 /*
-Scan fetches the site and detects what it runs. The input may be a URL or a bare
-host; it goes through NormalizeDomain first. Everything network-related goes
+Scan fetches the site and detects what it runs. The input may be a host name or
+a URL: NormalizeDomain keeps only the host, and Scan fetches the home page of
+that host. Everything network-related goes
 through internal/netguard, which checks the address each socket actually opens
 to, on every redirect hop and on the WAF bypass too, so a redirect cannot lead
 the scanner into an internal network.
