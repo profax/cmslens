@@ -18,7 +18,12 @@ mkdir -p "$dir"
 if [ $# -gt 0 ]; then
 	domains=("$@")
 else
-	mapfile -t domains < <(grep -v '^#' "$(dirname "$0")/corpus.tsv" | cut -f1)
+	# A read loop rather than mapfile: the bash that ships with macOS is 3.2,
+	# which has no mapfile
+	domains=()
+	while IFS= read -r domain; do
+		domains+=("$domain")
+	done < <(grep -v '^#' "$(dirname "$0")/corpus.tsv" | cut -f1)
 fi
 
 fetch() {
@@ -30,4 +35,5 @@ fetch() {
 }
 export -f fetch
 printf '%s\n' "${domains[@]}" | xargs -P 10 -I{} bash -c 'fetch "$1" "$2"' _ {} "$dir"
-echo "fetched $(find "$dir" -name '*.html' -size +0 | wc -l) of ${#domains[@]}" >&2
+# tr: wc on macOS pads the count with spaces
+echo "fetched $(find "$dir" -name '*.html' -size +0 | wc -l | tr -d ' ') of ${#domains[@]}" >&2
