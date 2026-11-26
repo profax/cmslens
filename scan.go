@@ -90,7 +90,7 @@ type Details struct {
 	StatusCode int    `json:"statusCode"`
 }
 
-// Result is what Scan found. Detected holds at most one backend engine and at
+// Result is what Scan found. Detected holds at most one engine and at
 // most one presentation layer on top of it, such as [Next.js WordPress]: the
 // name with the higher score first, on a tie the engine.
 type Result struct {

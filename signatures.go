@@ -1159,10 +1159,10 @@ type CMSScore struct {
 const minWinnerScore = 1
 
 /*
-SelectWinners applies the "one site, one engine" rule: among competing backends
+SelectWinners applies the "one site, one engine" rule: among competing engines
 only one wins (the highest score; on a tie, the first in detection order), and a
-frontend layer is added as a separate entry on top of it (a headless pair such
-as Next.js + WordPress). A candidate scoring below 1 never wins.
+presentation layer is added as a separate entry on top of it (a headless pair
+such as Next.js + WordPress). A candidate scoring below 1 never wins.
 */
 func SelectWinners(scores []CMSScore) []string {
 	if len(scores) == 0 {

@@ -9,8 +9,8 @@
 // refusing to connect to private and internal addresses. When a site blocks it,
 // Scan can retry through ScraperAPI.
 //
-// A result names at most one backend engine and at most one presentation
-// layer on top of it: a headless site answers two names, such as
-// [Next.js WordPress], an ordinary one [WordPress]. The name with the higher
-// score comes first; on a tie the engine does.
+// A result names at most one engine and at most one presentation layer on top
+// of it: a headless site answers two names, such as [Next.js WordPress], an
+// ordinary one [WordPress]. The name with the higher score comes first; on a
+// tie the engine does.
 package cmslens
