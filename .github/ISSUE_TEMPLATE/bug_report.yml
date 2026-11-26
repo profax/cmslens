@@ -1,5 +1,5 @@
 name: Bug report
-description: Something works wrong or is missing, a platform included
+description: Something is wrong or missing, such as a platform
 body:
   - type: textarea
     id: steps
