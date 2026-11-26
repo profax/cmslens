@@ -33,8 +33,8 @@ const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 #[derive(Debug, Clone, Default)]
 pub struct Options {
     /// Enables a retry through ScraperAPI (scraperapi.com) when a site blocks
-    /// the direct request or the scanner's address. Empty means the scan never
-    /// leaves this machine.
+    /// the direct request or the scanner's address. Empty means no third party
+    /// is asked: requests go to the site only.
     pub scraper_api_key: String,
     /// ScraperAPI's `country_code`, such as "us" or "de": some sites answer
     /// only visitors from their own country. Empty leaves the choice to
