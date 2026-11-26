@@ -220,16 +220,10 @@ async fn attempt_waf_bypass(
         // credit instead of ten. Signatures read the server's markup, and the direct
         // path does not execute it either; rendering the page would mean checking
         // something other than what the main fetcher sees
-        let mut scraper_url = format!(
-            "http://api.scraperapi.com?api_key={}&url={}",
-            query_escape(&opts.scraper_api_key),
-            query_escape(target_url)
-        );
-        if !opts.scraper_country.is_empty() {
-            scraper_url.push_str("&country_code=");
-            scraper_url.push_str(&query_escape(&opts.scraper_country));
-        }
-        attempts.push(try_fetch(&clients.scraper, scraper_url));
+        attempts.push(try_fetch(
+            &clients.scraper,
+            scraper_api_url(opts, target_url),
+        ));
     }
     attempts.push(try_fetch(&clients.direct, target_url.to_owned()));
 
@@ -239,6 +233,21 @@ async fn attempt_waf_bypass(
         }
     }
     None
+}
+
+/// The ScraperAPI request that fetches `target_url`. The key travels in the
+/// query.
+pub(crate) fn scraper_api_url(opts: &Options, target_url: &str) -> String {
+    let mut u = format!(
+        "http://api.scraperapi.com?api_key={}&url={}",
+        query_escape(&opts.scraper_api_key),
+        query_escape(target_url)
+    );
+    if !opts.scraper_country.is_empty() {
+        u.push_str("&country_code=");
+        u.push_str(&query_escape(&opts.scraper_country));
+    }
+    u
 }
 
 /// `url.QueryEscape` of Go: a space is `+`, `~` stays, the rest of what is not

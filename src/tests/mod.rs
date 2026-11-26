@@ -11,6 +11,7 @@ mod license_test;
 mod match_test;
 mod netguard_test;
 mod punycode_test;
+mod scan_test;
 mod signatures_test;
 
 use http::{HeaderMap, HeaderName, HeaderValue};
