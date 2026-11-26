@@ -33,6 +33,8 @@ tilda.cc	Tilda
 go install github.com/armilenru/cmslens/cmd/cmslens@latest
 ```
 
+Модулю нужен Go 1.24 или новее.
+
 Готовые программы для Linux, macOS и Windows приложены к каждому
 [выпуску](https://github.com/armilenru/cmslens/releases).
 
@@ -114,6 +116,9 @@ println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 
 let names = cmslens::detect(&body, &headers);
 ```
+
+`scan` асинхронная, ей нужен рантайм Tokio. `detect` принимает тело как
+`&[u8]`, а заголовки как `http::HeaderMap` из крейта `http` версии 1.
 
 `cargo install --git https://github.com/armilenru/cmslens cmslens` собирает ту же
 команду с теми же флагами и тем же выводом. Крейту нужен Rust 1.88 или новее.

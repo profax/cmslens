@@ -33,6 +33,8 @@ tilda.cc	Tilda
 go install github.com/armilenru/cmslens/cmd/cmslens@latest
 ```
 
+The module needs Go 1.24 or newer.
+
 Ready-made binaries for Linux, macOS and Windows are attached to each
 [release](https://github.com/armilenru/cmslens/releases).
 
@@ -114,6 +116,9 @@ println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 
 let names = cmslens::detect(&body, &headers);
 ```
+
+`scan` is async and needs a Tokio runtime. `detect` takes the body as `&[u8]`
+and the headers as an `http::HeaderMap` from the `http` crate, version 1.
 
 `cargo install --git https://github.com/armilenru/cmslens cmslens` builds the
 same command, with the same flags and the same output. The crate needs Rust
