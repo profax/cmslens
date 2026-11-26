@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/profax/cmslens"
+	"github.com/armilenru/cmslens"
 )
 
 // Set by the release build; go install leaves it to the module version.

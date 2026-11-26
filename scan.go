@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/profax/cmslens/internal/netguard"
+	"github.com/armilenru/cmslens/internal/netguard"
 )
 
 const (

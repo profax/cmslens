@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/armilenru/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/armilenru/cmslens/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-66.1%25-yellow)](coverage.txt)
-[![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
+[![Go Reference](https://pkg.go.dev/badge/github.com/armilenru/cmslens.svg)](https://pkg.go.dev/github.com/armilenru/cmslens)
 [![Release](https://img.shields.io/github/v/release/armilenru/cmslens)](https://github.com/armilenru/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -30,7 +30,7 @@ tilda.cc	Tilda
 ## Install
 
 ```
-go install github.com/profax/cmslens/cmd/cmslens@latest
+go install github.com/armilenru/cmslens/cmd/cmslens@latest
 ```
 
 Ready-made binaries for Linux, macOS and Windows are attached to each
@@ -57,7 +57,7 @@ The exit code is 1 when any site could not be scanned.
 ## Library
 
 ```go
-import "github.com/profax/cmslens"
+import "github.com/armilenru/cmslens"
 
 // Fetch the site and detect.
 res, err := cmslens.Scan(ctx, "https://example.com/some/page", cmslens.Options{})

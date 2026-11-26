@@ -1,4 +1,4 @@
-module github.com/profax/cmslens
+module github.com/armilenru/cmslens
 
 go 1.24
 
