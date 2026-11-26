@@ -17,7 +17,8 @@ static HOSTNAME_RE: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 /// Turns user input (a URL, a bare host, with or without www) into a host name
-/// to scan. A name in Cyrillic or another script comes back as punycode:
+/// to scan: the scheme, the path, the query, the port and a leading www. are
+/// dropped. A name in Cyrillic or another script comes back as punycode:
 /// президент.рф becomes xn--d1abbgf6aiiy.xn--p1ai. IP literals are rejected:
 /// there is no reason to scan by address bypassing DNS, and an address is the
 /// easiest way to reach an internal network (the fetcher also checks the

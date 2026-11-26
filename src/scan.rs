@@ -271,11 +271,12 @@ fn query_escape(s: &str) -> String {
     out
 }
 
-/// Fetches the site and detects what it runs. The input may be a URL or a bare
-/// host; it goes through `normalize_domain` first. Everything network-related
-/// goes through the netguard client, which checks the address each socket
-/// actually opens to, on every redirect hop and on the WAF bypass too, so a
-/// redirect cannot lead the scanner into an internal network.
+/// Fetches the site and detects what it runs. The input may be a host name or
+/// a URL: `normalize_domain` keeps only the host, and `scan` fetches the home
+/// page of that host. Everything network-related goes through the netguard
+/// client, which checks the address each socket actually opens to, on every
+/// redirect hop and on the WAF bypass too, so a redirect cannot lead the
+/// scanner into an internal network.
 ///
 /// There is no time limit of its own beyond the limits of each request: wrap
 /// the call in `tokio::time::timeout` for one.

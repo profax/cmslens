@@ -78,15 +78,18 @@ $ cmslens -json wordpress.org
 import "github.com/armilenru/cmslens"
 
 // Загрузить сайт и определить платформу.
-res, err := cmslens.Scan(ctx, "https://example.com/some/page", cmslens.Options{})
+res, err := cmslens.Scan(ctx, "example.com", cmslens.Options{})
 fmt.Println(res.Detected) // [Next.js WordPress]
 
 // Или определить по уже загруженной странице.
 names := cmslens.Detect(html, resp.Header)
 ```
 
-`Scan` принимает адрес страницы или просто имя сайта, в том числе
-кириллицей: `президент.рф` запрашивается как `xn--d1abbgf6aiiy.xn--p1ai`.
+`Scan` принимает имя сайта или адрес и загружает главную страницу этого сайта:
+путь, параметры, порт и `www.` в начале отбрасываются, так что
+`https://www.example.com/some/page` запрашивается как `example.com`. Имя можно
+писать кириллицей или другой письменностью: `президент.рф` запрашивается как
+`xn--d1abbgf6aiiy.xn--p1ai`.
 В результате есть поле `Status`: `ok` либо `cloudflare`, если на пути
 стояла страница защиты от ботов и пройти её не удалось. `errors.Is(err, cmslens.ErrNoSuchHost)`
 отличает опечатку в имени от сайта, который не ответил.
@@ -105,7 +108,7 @@ cmslens = { git = "https://github.com/armilenru/cmslens", rev = "<коммит>"
 ```
 
 ```rust
-let res = cmslens::scan("https://example.com/some/page", &cmslens::Options::default()).await?;
+let res = cmslens::scan("example.com", &cmslens::Options::default()).await?;
 println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 
 let names = cmslens::detect(&body, &headers);
