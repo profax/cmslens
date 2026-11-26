@@ -2,10 +2,10 @@
 
 # cmslens
 
-[![CI](https://github.com/profax/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/profax/cmslens/actions/workflows/ci.yml)
+[![CI](https://github.com/armilenru/cmslens/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/armilenru/cmslens/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-66.1%25-yellow)](coverage.txt)
 [![Go Reference](https://pkg.go.dev/badge/github.com/profax/cmslens.svg)](https://pkg.go.dev/github.com/profax/cmslens)
-[![Release](https://img.shields.io/github/v/release/profax/cmslens)](https://github.com/profax/cmslens/releases)
+[![Release](https://img.shields.io/github/v/release/armilenru/cmslens)](https://github.com/armilenru/cmslens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 cmslens tells which CMS, site builder or web framework a website runs. It reads
@@ -34,7 +34,7 @@ go install github.com/profax/cmslens/cmd/cmslens@latest
 ```
 
 Ready-made binaries for Linux, macOS and Windows are attached to each
-[release](https://github.com/profax/cmslens/releases).
+[release](https://github.com/armilenru/cmslens/releases).
 
 ## Command line
 
@@ -84,7 +84,7 @@ reference, and the two tables are kept the same by a test.
 
 ```toml
 [dependencies]
-cmslens = { git = "https://github.com/profax/cmslens", rev = "<commit>" }
+cmslens = { git = "https://github.com/armilenru/cmslens", rev = "<commit>" }
 ```
 
 ```rust
@@ -94,7 +94,7 @@ println!("{:?}", res.detected); // ["Next.js", "WordPress"]
 let names = cmslens::detect(&body, &headers);
 ```
 
-`cargo install --git https://github.com/profax/cmslens cmslens` builds the
+`cargo install --git https://github.com/armilenru/cmslens cmslens` builds the
 same command, with the same flags and the same output. The crate needs Rust
 1.88 or newer.
 
