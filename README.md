@@ -97,10 +97,11 @@ that did not answer.
 ## Rust
 
 The repository also holds the detector as a Rust crate, translated from the Go
-package and checked against it: on the 2,815 pages of the corpus both give the
-same answers with the same scores, and on live sites the same JSON lines. The
-crate is meant to replace the Go module. Until then the Go package is the
-reference, and the two tables are kept the same by a test.
+package and checked against it: on the 2,815 corpus pages that downloaded when
+the crate was added, both give the same answers with the same scores, and on
+live sites the same JSON lines. The crate is meant to replace the Go module.
+Until then the Go package is the reference, and the two tables are kept the
+same by a test.
 
 ```toml
 [dependencies]
@@ -167,8 +168,9 @@ from the environment are ignored.
    CMSLENS_CORPUS=/tmp/corpus go test -count=1 -run TestCorpus -v .
    ```
 
-   [`testdata/corpus.tsv`](testdata/corpus.tsv) lists about 2,900 public sites
-   with their expected answers. Sites answer differently depending on where
+   [`testdata/corpus.tsv`](testdata/corpus.tsv) lists about 2,900 public
+   sites. About 1,900 of them have an expected answer; the rest are fetched
+   and printed, but not compared. Sites answer differently depending on where
    you ask from, so a few mismatches can come from the network rather than the
    table.
 
