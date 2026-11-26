@@ -43,16 +43,33 @@ cmslens [flags] domain...
 cmslens -file page.html
 ```
 
-| Flag | Meaning |
+| Flag | What it does |
 |---|---|
-| `-json` | one JSON object per site instead of text |
-| `-file page.html` | detect from a saved page, without network access |
-| `-timeout 60s` | time limit per site |
-| `-scraperapi-key KEY` | retry sites that block the scanner through [ScraperAPI](https://www.scraperapi.com/) (also read from `$SCRAPERAPI_KEY`) |
-| `-country us` | ScraperAPI country code, for sites that answer only local visitors |
-| `-lang ru-RU` | `Accept-Language` to send |
+| `-json` | Prints one JSON object per site instead of a line of text. |
+| `-file PATH` | Detects from a saved HTML page instead of fetching a site. Nothing goes over the network, and no response headers are used. |
+| `-timeout DURATION` | Sets the time limit per site, such as `90s` or `2m`. Default: `60s`. |
+| `-scraperapi-key KEY` | Retries through [ScraperAPI](https://www.scraperapi.com/) when a site blocks the scanner or does not answer it. Default: the value of `$SCRAPERAPI_KEY`. |
+| `-country CODE` | Sets the ScraperAPI country code, such as `us` or `de`, for sites that answer only local visitors. Default: unset, and ScraperAPI picks the country. |
+| `-lang VALUE` | Sets the `Accept-Language` header, such as `ru-RU`. Default: `en-US,en;q=0.9`. |
+| `-version` | Prints the version and exits. |
+| `-h` | Prints the list of flags and exits. |
 
-The exit code is 1 when any site could not be scanned.
+A flag takes one dash or two: `-json` and `--json` are the same.
+
+Each line of text output is the input, a tab and the answer: the names found,
+separated by `, `; `unknown` when no platform scores high enough;
+`blocked by an anti-bot page` when the site answered 403, 503 or an anti-bot
+page and the second try did not get past it; or `error:` and the reason. With
+`-json` the line is an object:
+
+```text
+$ cmslens -json wordpress.org
+{"input":"wordpress.org","result":{"status":"ok","detected":["WordPress"],"wafBehind":false,"details":{"title":"Blog Tool, Publishing Platform, and CMS \u0026#124; WordPress.org","server":"nginx","statusCode":200}}}
+```
+
+The exit code is 0 when every site was read, 1 when a site gave an error or
+the file of `-file` could not be read, and 2 when the command line is wrong. A
+site that prints `unknown` or `blocked by an anti-bot page` counts as read.
 
 ## Library
 
