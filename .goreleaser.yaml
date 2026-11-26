@@ -10,6 +10,9 @@ builds:
 
 archives:
   - formats: [tar.gz]
+    # Named one by one: the default patterns include license*, which also
+    # takes license_test.go into every archive
+    files: [LICENSE, README.md, README.ru.md]
     format_overrides:
       - goos: windows
         formats: [zip]
