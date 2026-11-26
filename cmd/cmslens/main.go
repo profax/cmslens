@@ -31,10 +31,19 @@ var version = "dev"
 // module version go install recorded.
 func moduleVersion() string {
 	info, ok := debug.ReadBuildInfo()
-	if ok && version == "dev" && info.Main.Version != "" && info.Main.Version != "(devel)" {
-		return info.Main.Version
+	if !ok {
+		return version
 	}
-	return version
+	return printedVersion(version, info.Main.Version)
+}
+
+// printedVersion picks between set, the version the release build wrote in,
+// and module, the version of the main module in the build info.
+func printedVersion(set, module string) string {
+	if set == "dev" && module != "" && module != "(devel)" {
+		return module
+	}
+	return set
 }
 
 const (

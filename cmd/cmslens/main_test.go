@@ -42,3 +42,23 @@ func TestHelpDoesNotShowTheKey(t *testing.T) {
 		t.Errorf("the help text lost the flag:\n%s", out)
 	}
 }
+
+// go install printed "cmslens v0.2.0" and the release archive and the Rust
+// build "cmslens 0.2.0", so the line a bug report quotes depended on how the
+// command was installed.
+func TestVersionHasOneForm(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct{ name, set, module, want string }{
+		{"release archive", "0.2.0", "v0.2.0", "0.2.0"},
+		{"go install", "dev", "v0.2.0", "0.2.0"},
+		{"go build from a checkout", "dev", "v0.2.1-0.20261126120000-0123456789ab", "0.2.1-0.20261126120000-0123456789ab"},
+		{"no module version", "dev", "(devel)", "dev"},
+		{"no build info", "dev", "", "dev"},
+	}
+	for _, c := range cases {
+		if got := printedVersion(c.set, c.module); got != c.want {
+			t.Errorf("%s: printedVersion(%q, %q) = %q, want %q", c.name, c.set, c.module, got, c.want)
+		}
+	}
+}

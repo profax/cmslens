@@ -78,3 +78,20 @@ fn invalid_input_fails_without_network() {
     let out = cmslens().output().unwrap();
     assert_eq!(out.status.code(), Some(2), "no domains is a usage error");
 }
+
+/// The version line has the form of the release archive and of the Go build,
+/// `cmslens 0.2.0`, with no leading `v`, so a bug report quotes the same line
+/// whichever way the command was installed.
+#[test]
+fn version_has_one_form() {
+    let out = cmslens().arg("-version").output().unwrap();
+    assert!(out.status.success(), "cmslens -version: {out:?}");
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap(),
+        format!("cmslens {}\n", env!("CARGO_PKG_VERSION"))
+    );
+    assert!(
+        env!("CARGO_PKG_VERSION").starts_with(|c: char| c.is_ascii_digit()),
+        "the version starts with a digit"
+    );
+}
