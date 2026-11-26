@@ -154,44 +154,76 @@ from the environment are ignored.
 
 ## Adding a platform
 
-1. Add an entry to `cmsSignatures` in [`signatures.go`](signatures.go) and
-   the same entry to `CMS_SIGNATURES` in
-   [`src/signatures.rs`](src/signatures.rs). Prefer features the platform
-   itself emits (its CDN host, generator, cookie) over its name, which other
-   sites mention too.
-2. If a real site was detected wrongly, add the trimmed markup as a test in
-   [`falsepositive_test.go`](falsepositive_test.go).
-3. Check the whole table against live sites:
+1. Add an entry to `cmsSignatures` in [`signatures.go`](signatures.go). A body
+   feature is `` b(`...`) `` (weight 1) or `` bw(`...`, 0.5) ``; a header
+   feature sits under the header name in lower case as `` h(`...`) `` (weight
+   2) or `hw`. Each is a case-insensitive regular expression in RE2 syntax,
+   and a feature made only of letters, digits, `_` and `-` starts with `\b`.
+   Prefer features the platform itself emits (its CDN host, generator,
+   cookie) over its name, which other sites mention too. On a tie the entry
+   higher in the table wins.
+2. Add the same entry at the same place to `CMS_SIGNATURES` in
+   [`src/signatures.rs`](src/signatures.rs), written like its neighbors:
+   `entry("Name", Signature { body: &[b(r"...")], ..NONE })`. The test
+   `table_matches_the_go_source` fails until both tables hold the same
+   features with the same weights.
+3. Raise the number of entries by one where it is written down: in
+   `TestAllSignaturesCompile` ([`signatures_test.go`](signatures_test.go)), in
+   `all_signatures_compile`
+   ([`src/tests/signatures_test.rs`](src/tests/signatures_test.rs)) and in
+   the first paragraph of both READMEs. `plans_follow_the_features`
+   ([`src/tests/match_test.rs`](src/tests/match_test.rs)) counts the
+   features by kind: its failure prints the new counts, and they should move
+   by the features you added.
+4. If the platform is a presentation layer that runs on top of an engine,
+   like Next.js, add its name to `frontendLayer` in
+   [`signatures.go`](signatures.go) and to `FRONTEND_LAYER` in
+   [`src/signatures.rs`](src/signatures.rs).
+5. If a real site was detected wrongly, add the trimmed markup as a test to
+   [`falsepositive_test.go`](falsepositive_test.go) and the same test, named
+   in snake case, to
+   [`src/tests/falsepositive_test.rs`](src/tests/falsepositive_test.rs).
+6. Add a public site that runs the platform to
+   [`testdata/corpus.tsv`](testdata/corpus.tsv): the domain, a tab and the
+   expected answer. Then check the whole table against live sites:
 
-   ```
+   ```sh
    testdata/corpus.sh /tmp/corpus
    CMSLENS_CORPUS=/tmp/corpus go test -count=1 -run TestCorpus -v .
+   CMSLENS_CORPUS=/tmp/corpus cargo test corpus -- --ignored
    ```
 
-   [`testdata/corpus.tsv`](testdata/corpus.tsv) lists about 2,900 public
-   sites. About 1,900 of them have an expected answer; the rest are fetched
-   and printed, but not compared. Sites answer differently depending on where
-   you ask from, so a few mismatches can come from the network rather than the
-   table.
+   The script needs bash and curl. It downloads about 2,900 public sites,
+   about 1,900 of them with an expected answer; the rest are fetched and
+   printed, but not compared. `testdata/corpus.sh /tmp/corpus example.com`
+   downloads only the sites you name. Sites answer differently depending on
+   where you ask from, so a few mismatches can come from the network rather
+   than the table.
 
 ## Contributing
 
 Every change starts from an issue. A bug report says what you ran, what you
 expected and what you got; a missing platform or something the tool does not
 do yet is reported the same way. A pull request names its issue and does one
-thing, and a bug fix comes with a test that fails without it. The main branch takes changes only through
-pull requests, merged when CI is green. Before you push:
+thing, and a bug fix comes with a test that fails without it. The main branch
+takes changes only through pull requests, and GitHub lets one be merged only
+when the Go tests, the linter and the coverage check pass; the Rust checks run
+on every pull request too.
 
-```
+You need Go 1.24 or newer, golangci-lint 2 (CI runs v2.15.0), and Rust 1.88 or
+newer with clippy and rustfmt. Before you push:
+
+```sh
 go test -race ./...
-golangci-lint run         # every linter is on, see .golangci.yml
-go run ./internal/cover   # rewrites coverage.txt, commit it with the change
-cargo test && cargo clippy --all-targets -- -D warnings
+golangci-lint run         # every linter but the few .golangci.yml turns off
+go run ./internal/cover   # rewrites coverage.txt and the badge in both READMEs
+cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
 ```
 
-`coverage.txt` counts the statements without a test in each file, and CI
-fails when the committed copy differs from what the tests give: a change that
-leaves code untested shows that in its own diff.
+Commit `coverage.txt` and the two READMEs with the change. `coverage.txt`
+counts the statements without a test in each file, and CI fails when the
+committed copy differs from what the tests give: a change that leaves code
+untested shows that in its own diff.
 
 ## Status
 
