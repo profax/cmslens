@@ -157,6 +157,10 @@ metadata (`169.254.169.254`) are refused on every redirect and on every
 fallback address. Responses are capped at 5 MB, redirects at 5, and proxies
 from the environment are ignored.
 
+When https does not open, `Scan` tries http. When a site answers 403, 503 or
+an anti-bot page, it asks once more with certificate checks off. So the answer
+tells what a site runs, but does not vouch for who served the page.
+
 ## Adding a platform
 
 1. Add an entry to `cmsSignatures` in [`signatures.go`](signatures.go). A body
