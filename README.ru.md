@@ -20,7 +20,7 @@ Tilda, MODX, InSales, NetCat, UMI.CMS, uCoz и Flexbe.
 Попробовать в браузере: [armilen.ru/services/cms](https://www.armilen.ru/services/cms)
 работает на cmslens.
 
-```
+```text
 $ cmslens wordpress.org tilda.cc 1c-bitrix.ru
 wordpress.org	WordPress
 tilda.cc	Tilda
@@ -29,7 +29,7 @@ tilda.cc	Tilda
 
 ## Установка
 
-```
+```sh
 go install github.com/armilenru/cmslens/cmd/cmslens@latest
 ```
 
@@ -38,7 +38,7 @@ go install github.com/armilenru/cmslens/cmd/cmslens@latest
 
 ## Командная строка
 
-```
+```text
 cmslens [флаги] домен...
 cmslens -file page.html
 ```
