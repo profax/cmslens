@@ -35,8 +35,8 @@ const (
 // pages are requested in English.
 type Options struct {
 	// ScraperAPIKey enables a retry through ScraperAPI (scraperapi.com) when a
-	// site blocks the direct request or the scanner's address. Empty means the
-	// scan never leaves this machine.
+	// site blocks the direct request or the scanner's address. Empty means no
+	// third party is asked: requests go to the site only.
 	ScraperAPIKey string
 	// ScraperCountry is ScraperAPI's country_code, such as "us" or "de": some
 	// sites answer only visitors from their own country. Empty leaves the

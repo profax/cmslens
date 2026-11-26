@@ -6,8 +6,8 @@
 //
 // Detect works offline on a page you already have. Scan keeps only the host of
 // the name or URL it is given and fetches the home page of that host itself,
-// refusing to connect to private and internal addresses, and can retry a site
-// that blocks it through ScraperAPI.
+// refusing to connect to private and internal addresses. When a site blocks it,
+// Scan can retry through ScraperAPI.
 //
 // A result names at most one backend engine and at most one presentation
 // layer on top of it: a headless site answers two names, such as

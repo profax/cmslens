@@ -2813,8 +2813,7 @@ const MIN_WINNER_SCORE: f64 = 1.0;
 /// Applies the "one site, one engine" rule: among competing backends only one
 /// wins (the highest score; on a tie, the first in detection order), and a
 /// frontend layer is added as a separate entry on top of it (a headless pair
-/// such as Next.js + WordPress). A candidate scoring below the threshold never
-/// wins.
+/// such as Next.js + WordPress). A candidate scoring below 1 never wins.
 #[must_use]
 pub fn select_winners(scores: &[CmsScore]) -> Vec<String> {
     let mut ranked = scores.to_vec();
