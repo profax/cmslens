@@ -88,9 +88,9 @@ names := cmslens.Detect(html, resp.Header)
 path, the query, the port and a leading `www.` are dropped, so
 `https://www.example.com/some/page` is fetched as `example.com`. A name in
 Cyrillic or another script works too: `президент.рф` is fetched as
-`xn--d1abbgf6aiiy.xn--p1ai`. Its result has a
-`Status`: `ok`, or `cloudflare` when an anti-bot page stood in the way and
-could not be passed.
+`xn--d1abbgf6aiiy.xn--p1ai`. Its result has a `Status`: `ok` when a page was
+read, or `cloudflare` when the site answered 403, 503 or an anti-bot page of
+any vendor and the second try did not get past it.
 `errors.Is(err, cmslens.ErrNoSuchHost)` tells a typo in the name from a site
 that did not answer.
 
@@ -127,7 +127,8 @@ the highest score wins, with three rules on top:
 
 - **One site, one engine.** Only one backend wins. A presentation layer such
   as Next.js, Nuxt or Astro is reported next to it, so a headless site comes
-  out as `[Next.js WordPress]`.
+  out as two names, such as `[Next.js WordPress]`. The name with the higher
+  score comes first, and on a tie the engine does.
 - **No answer from a single weak hint.** A score below 1 gives no answer.
 - **Short fragments start at a word boundary.** Otherwise `evo-` matches inside
   the transliterated `derevo-alyuminievaya`, and a site gets an engine it does
