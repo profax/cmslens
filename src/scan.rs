@@ -112,7 +112,7 @@ pub struct Details {
     pub status_code: u16,
 }
 
-/// What `scan` found. `detected` holds at most one backend engine and at most
+/// What `scan` found. `detected` holds at most one engine and at most
 /// one presentation layer on top of it, such as `["Next.js", "WordPress"]`:
 /// the name with the higher score first, on a tie the engine.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

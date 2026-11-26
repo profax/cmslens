@@ -125,10 +125,11 @@ tags, inline scripts) and in the response headers (cookies, `x-powered-by`).
 A header weighs more than markup, since it is harder to fake. The platform with
 the highest score wins, with three rules on top:
 
-- **One site, one engine.** Only one backend wins. A presentation layer such
-  as Next.js, Nuxt or Astro is reported next to it, so a headless site comes
-  out as two names, such as `[Next.js WordPress]`. The name with the higher
-  score comes first, and on a tie the engine does.
+- **One site, one engine.** Only one engine wins: a CMS, a site builder or a
+  server framework. A presentation layer such as Next.js, Nuxt or Astro is
+  reported next to it, so a headless site comes out as two names, such as
+  `[Next.js WordPress]`. The name with the higher score comes first, and on a
+  tie the engine does.
 - **No answer from a single weak hint.** A score below 1 gives no answer.
 - **Short fragments start at a word boundary.** Otherwise `evo-` matches inside
   the transliterated `derevo-alyuminievaya`, and a site gets an engine it does
@@ -174,9 +175,9 @@ from the environment are ignored.
 ## Contributing
 
 Every change starts from an issue. A bug report says what you ran, what you
-expected and what you got; a missing platform or feature is reported the same
-way. A pull request names its issue and does one thing, and a bug fix comes
-with a test that fails without it. The main branch takes changes only through
+expected and what you got; a missing platform or something the tool does not
+do yet is reported the same way. A pull request names its issue and does one
+thing, and a bug fix comes with a test that fails without it. The main branch takes changes only through
 pull requests, merged when CI is green. Before you push:
 
 ```
