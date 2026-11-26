@@ -169,7 +169,7 @@ cargo test && cargo clippy --all-targets -- -D warnings
 
 ## Состояние
 
-cmslens ведёт [profax](https://github.com/profax), на нём работает
+cmslens ведёт [armilen](https://github.com/armilenru), на нём работает
 определитель на [armilen.ru](https://www.armilen.ru/services/cms). Версия
 0.x: API библиотеки ещё может меняться при смене второго числа версии, а
 правка, которая ломает вызывающий код, стоит первой в заметках к выпуску.

@@ -171,7 +171,7 @@ leaves code untested shows that in its own diff.
 
 ## Status
 
-cmslens is maintained by [profax](https://github.com/profax) and runs the
+cmslens is maintained by [armilen](https://github.com/armilenru) and runs the
 detector on [armilen.ru](https://www.armilen.ru/en/services/cms). It is at
 0.x: the library API may still change between minor versions, and a change
 that breaks callers is listed first in the release notes. A release is a tag:
