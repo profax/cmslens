@@ -157,7 +157,7 @@ func attemptWafBypass(ctx context.Context, clients bypassPair, targetURL string,
 // scraperAPIURL is the ScraperAPI request that fetches targetURL. The key
 // travels in the query.
 func scraperAPIURL(opts Options, targetURL string) string {
-	u := "http://api.scraperapi.com?api_key=" + url.QueryEscape(opts.ScraperAPIKey) +
+	u := "https://api.scraperapi.com?api_key=" + url.QueryEscape(opts.ScraperAPIKey) +
 		"&url=" + url.QueryEscape(targetURL)
 	if opts.ScraperCountry != "" {
 		u += "&country_code=" + url.QueryEscape(opts.ScraperCountry)

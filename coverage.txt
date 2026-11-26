@@ -5,6 +5,6 @@ domain.go 0 of 23
 internal/netguard/netguard.go 20 of 82
 internal/punycode/punycode.go 0 of 58
 match.go 3 of 115
-scan.go 72 of 90
+scan.go 69 of 91
 signatures.go 0 of 28
-total 160 of 475, 66.3% covered
+total 157 of 476, 67.0% covered
