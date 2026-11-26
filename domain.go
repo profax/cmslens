@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/profax/cmslens/internal/punycode"
+	"github.com/armilenru/cmslens/internal/punycode"
 )
 
 // hostnameRe checks the ASCII form of the host: a name typed in Cyrillic

@@ -29,7 +29,7 @@ linters:
           # The module promises no dependencies outside the standard library
           allow:
             - $gostd
-            - github.com/profax/cmslens
+            - github.com/armilenru/cmslens
     exhaustive:
       default-signifies-exhaustive: true
     govet:
@@ -44,7 +44,7 @@ linters:
       checks: ["all"]
     wrapcheck:
       ignore-package-globs:
-        - github.com/profax/cmslens/*
+        - github.com/armilenru/cmslens/*
   exclusions:
     rules:
       # The signature table is data: header names repeat, weights are plain
