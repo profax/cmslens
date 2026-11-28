@@ -6,11 +6,15 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     # One pull request a week for the small updates, majors each apart
     groups:
       minor-and-patch:
